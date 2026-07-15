@@ -1,0 +1,16 @@
+# Dependencies
+node_modules/
+
+# Wrangler
+.wrangler/
+
+# Logs
+*.log
+
+# Environment
+.env
+.env.*
+
+# OS
+.DS_Store
+Thumbs.db

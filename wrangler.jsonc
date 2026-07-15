@@ -1,0 +1,19 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  "name": "alexachain",
+  "main": "worker.js",
+  "compatibility_date": "2026-07-15",
+
+  "workers_dev": true,
+
+  "observability": {
+    "enabled": true
+  },
+
+  "vars": {
+    "APP_NAME": "ALEXA API",
+    "APP_VERSION": "1.0.0",
+    "APP_URL": "https://alexa-chain.web.app"
+  }
+}
