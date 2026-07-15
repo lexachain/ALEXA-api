@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="id" dir="ltr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+<meta
+name="theme-color"
+content="#D4AF37">
+
+<meta
+name="color-scheme"
+content="dark">
+
+<meta
+name="description"
+content="ALEXA - AI, Web3 & Digital Companion">
+
+<meta
+name="format-detection"
+content="telephone=no">
+
+<meta
+http-equiv="X-UA-Compatible"
+content="IE=edge">
+
+<meta
+name="mobile-web-app-capable"
+content="yes">
+
+<meta
+name="apple-mobile-web-app-capable"
+content="yes">
+
+<meta
+name="apple-mobile-web-app-status-bar-style"
+content="black-translucent">
+
+<meta
+name="apple-mobile-web-app-title"
+content="ALEXA">
+
+<title>ALEXA</title>
+
+<link
+rel="icon"
+type="image/png"
+href="assets/icons/favicon.png">
+
+<link
+rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link
+rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+<link
+rel="stylesheet"
+href="css/style.css">
+
+</head>
+
+<body id="body">
+<noscript>
+    ALEXA membutuhkan JavaScript agar aplikasi dapat berjalan.
+</noscript>
+<!-- ========================= -->
+<!-- Loading -->
+<!-- ========================= -->
+
+<div
+id="loadingOverlay"
+class="loading-overlay">
+
+<div
+id="loadingContent">
+
+<img
+id="loadingLogo"
+src="assets/icons/logo.png"
+alt="ALEXA">
+
+<h1
+id="loadingTitle">
+ALEXA
+</h1>
+
+<p
+id="loadingSubtitle">
+Chain & Digital Ecosystem
+</p>
+
+<div
+id="loadingProgress">
+
+<div
+id="loadingBar">
+</div>
+
+</div>
+
+<span
+id="loadingText">
+
+Initializing...
+
+</span>
+
+</div>
+
+</div>
+
+<!-- ========================= -->
+<!-- APP -->
+<!-- ========================= -->
+
+<div
+id="app"
+class="app">
+<div
+id="overlay"
+class="overlay"
+hidden>
+</div>
+<!-- ========================= -->
+<!-- HEADER -->
+<!-- ========================= -->
+
+<header
+id="headerMain"
+class="header">
+
+<div
+class="header-left">
+
+<button
+id="btnMenu"
+type="button"
+class="icon-btn"
+data-action="menu"
+aria-label="Open Menu">
+
+<i class="fa-solid fa-bars"></i>
+
+</button>
+
+</div>
+<div class="wallet-info">
+<div
+id="headerWallet"
+class="header-wallet">
+
+<!-- LEXA -->
+
+<button
+id="walletLexa"
+type="button"
+class="wallet-chip"
+data-wallet="lexa">
+
+<img
+id="walletLexaIcon"
+src="assets/icons/lexa-token.png"
+alt="LEXA">
+
+<div>
+
+<span
+id="walletLexaBalance">
+
+0.000000
+
+</span>
+
+</div>
+
+</button>
+
+</div>
+</div>
+<div
+id="headerActions"
+class="header-right">
+
+<button
+id="btnInbox"
+type="button"
+class="icon-btn"
+aria-label="Inbox">
+
+<i class="fa-regular fa-envelope"></i>
+
+<span
+id="badgeInbox"
+class="badge">
+
+0
+
+</span>
+
+</button>
+
+<button
+id="btnNotification"
+type="button"
+class="icon-btn"
+aria-label="Notification">
+
+<i class="fa-regular fa-bell"></i>
+
+<span
+id="badgeNotification"
+class="badge">
+
+0
+
+</span>
+
+</button>
+
+</div>
+
+</header>
+
+<!-- ========================= -->
+<!-- MAIN -->
+<!-- ========================= -->
+
+<main
+id="mainContent"
+class="main">
+
+<!-- ==========================================
+     HERO
+========================================== -->
+
+<section id="heroSection" class="hero">
+
+    <div class="hero-background">
+
+        <div class="hero-aurora"></div>
+
+        <div class="hero-grid"></div>
+
+    </div>
+
+    <div class="hero-content">
+
+        <!-- LEFT -->
+
+        <aside class="hero-side">
+
+            <button
+id="btnCalendar"
+type="button"
+class="hero-side-btn">
+
+<i class="fa-solid fa-calendar-days"></i>
+
+</button>
+
+<button
+id="btnLeaderboard"
+type="button"
+class="hero-side-btn">
+
+<i class="fa-solid fa-crown"></i>
+
+</button>
+        </aside>
+
+        <!-- CENTER -->
+
+        <section class="hero-center">
+
+            <!-- CARD -->
+
+            <div class="pet-glass">
+
+                <!-- EFFECT -->
+
+                <div class="glass-light"></div>
+
+                <!-- LEVEL -->
+
+                <div class="pet-level-badge">
+
+                    <span
+id="heroPetLevel"
+class="level-text">
+★ Lv.1
+</span>
+
+                </div>
+
+                <!-- LEXA -->
+
+                <div class="pet-premium-card">
+
+                    <span class="lexa-star">
+
+                        ✦
+
+                    </span>
+
+                    <span class="lexa-text">
+
+                        LEXA
+
+                    </span>
+
+                    <span class="lexa-star">
+
+                        ✦
+
+                    </span>
+
+                </div>
+
+                <!-- GLOW RING -->
+
+                <div class="pet-ring"></div>
+
+                <!-- PET -->
+
+                <img
+
+                    id="dashboardPet"
+
+                    class="dashboard-pet"
+
+                    src="assets/pets/premiumpets.png"
+
+                    alt="Pet">
+
+                <!-- PLATFORM -->
+
+                <div class="pet-stage">
+
+                    <div class="stage-shadow"></div>
+
+                    <div class="stage-top"></div>
+
+                    <div class="stage-left"></div>
+
+                    <div class="stage-right"></div>
+
+                    <div class="stage-front">
+
+                        <span class="diamond"></span>
+
+                    </div>
+
+                </div>
+
+                <!-- REFLECTION -->
+
+                <div class="glass-reflection"></div>
+
+            </div>
+
+            <!-- HUD -->
+
+            <div class="pet-status-card">
+
+                <div class="status-box">
+
+                    <small>STATUS</small>
+
+                    <strong
+id="heroPetStatus">
+
+                        <span class="live-dot"></span>
+
+                        READY
+
+                    </strong>
+
+                </div>
+
+                <div class="status-box">
+
+                    <small>MINING</small>
+<strong
+id="heroMiningRate">
+0.7 LEXA
+</strong>
+
+                    <div class="status-progress">
+
+                        <div class="status-progress-fill"></div>
+
+                    </div>
+
+                </div>
+
+                <div class="status-box">
+
+                    <small>NEXT SESSION</small>
+
+                    <strong
+id="heroNextMining">
+
+24:00:00
+
+</strong>
+
+                </div>
+
+            </div>
+
+            <!-- ACTION -->
+
+            <div class="pet-action">
+
+    <button
+    id="btnCollect"
+    class="gold-btn">
+
+        <i class="fa-solid fa-gem"></i>
+
+        <span>START</span>
+<i class="fa-solid fa-play"></i>
+    </button>
+
+</div>
+        </section>
+
+        <!-- RIGHT -->
+
+        <aside class="hero-side">
+
+            <button
+id="btnGift"
+type="button"
+class="hero-side-btn">
+
+<i class="fa-solid fa-gift"></i>
+
+</button>
+
+<button
+id="btnInviteQuick"
+type="button"
+class="hero-side-btn">
+
+<i class="fa-solid fa-user-plus"></i>
+
+</button>
+
+        </aside>
+
+    </div>
+
+</section>
+<!-- ====================================== -->
+<!-- BANNER -->
+<!-- ====================================== -->
+
+<section
+id="bannerSection"
+class="section"
+data-section="banner">
+
+    <div
+    id="bannerSlider"
+    class="banner-slider">
+
+        <!-- Banner Render From Firestore -->
+
+    </div>
+
+    <div
+    id="bannerIndicator"
+    class="banner-indicator">
+    </div>
+
+</section>
+
+<!-- ====================================== -->
+<!-- BOTTOM NAVIGATION -->
+<!-- ====================================== -->
+
+</main>
+<div
+id="offlineBanner"
+class="offline-banner"
+hidden>
+
+<i class="fa-solid fa-wifi"></i>
+
+<span>
+
+Offline Mode
+
+</span>
+
+</div>
+<nav
+id="bottomNav"
+class="bottom-nav">
+
+<button
+id="navHome"
+type="button"
+class="nav-item"
+data-page="home">
+
+<i class="fa-solid fa-house"></i>
+
+<span>Home</span>
+
+</button>
+
+<button
+id="navApps"
+type="button"
+class="nav-item"
+data-page="apps">
+
+<i class="fa-solid fa-table-cells-large"></i>
+
+<span>Apps</span>
+
+</button>
+
+<button
+    id="navCommunity"
+    type="button"
+    class="nav-item"
+    data-page="community">
+
+    <i class="fa-solid fa-user-group"></i>
+
+    <span>Community</span>
+
+</button>
+
+<button
+id="navInvite"
+type="button"
+class="nav-item"
+data-page="invite">
+
+<i class="fa-solid fa-user-plus"></i>
+
+<span>Invite</span>
+
+</button>
+
+<button
+id="navWallet"
+type="button"
+class="nav-item"
+data-page="wallet">
+
+<i class="fa-solid fa-wallet"></i>
+
+<span>Wallet</span>
+
+</button>
+
+</nav>
+
+<!-- ========================= -->
+<!-- DRAWER -->
+<!-- ========================= -->
+
+<aside
+id="drawerMenu"
+class="drawer">
+
+    <!-- PROFILE -->
+
+    <div class="drawer-profile">
+
+        <button
+        id="btnProfileAvatar"
+        class="drawer-avatar">
+
+            <img
+            id="drawerAvatar"
+            src="assets/avatar/default.png"
+            alt="Avatar">
+
+        </button>
+
+        <h3 id="drawerUsername">
+            @Username
+        </h3>
+
+        <p id="drawerUid">
+            UID : LEXAXXX
+        </p>
+
+        <span id="drawerLevel">
+            ⭐ Level 1
+        </span>
+
+    </div>
+
+    <!-- SCROLL AREA -->
+
+    <div class="drawer-body">
+
+        <!-- MENU -->
+
+        <nav class="drawer-nav">
+
+            <button id="menuProfile" class="drawer-item">
+                <i class="fa-regular fa-user"></i>
+                <span>Profile</span>
+            </button>
+
+            <button id="menuInvite" class="drawer-item">
+                <i class="fa-solid fa-user-plus"></i>
+                <span>Invite Friends</span>
+            </button>
+
+            <button id="menuRedeem" class="drawer-item">
+                <i class="fa-solid fa-gift"></i>
+                <span>Redeem Code</span>
+            </button>
+
+            <button id="menuInviteCode" class="drawer-item">
+                <i class="fa-solid fa-link"></i>
+                <span>Enter Invite Code</span>
+            </button>
+
+        </nav>
+
+        <!-- COMMUNITY -->
+
+        <div class="drawer-group">
+
+            <button id="menuLeaderboard" class="drawer-item">
+                <i class="fa-solid fa-trophy"></i>
+                <span>Leaderboard</span>
+            </button>
+
+            <button id="menuChannel" class="drawer-item">
+                <i class="fa-brands fa-telegram"></i>
+                <span>Join ALEXA Channel</span>
+            </button>
+
+            <button id="menuSocial" class="drawer-item">
+                <i class="fa-solid fa-share-nodes"></i>
+                <span>Follow Social</span>
+            </button>
+
+        </div>
+
+        <!-- SETTINGS -->
+
+        <div class="drawer-group">
+
+            <button id="menuHelp" class="drawer-item">
+                <i class="fa-regular fa-lightbulb"></i>
+                <span>Suggestions & Help</span>
+            </button>
+
+            <button id="menuSettings" class="drawer-item">
+                <i class="fa-solid fa-gear"></i>
+                <span>Settings</span>
+            </button>
+
+            <button id="menuPrivacy" class="drawer-item">
+                <i class="fa-solid fa-shield-halved"></i>
+                <span>Privacy Policy</span>
+            </button>
+
+            <button id="menuLogout" class="drawer-item logout">
+                <i class="fa-solid fa-right-from-bracket"></i>
+                <span>Logout</span>
+            </button>
+
+        </div>
+
+    </div>
+
+    <!-- FOOTER -->
+
+    <div class="drawer-footer">
+
+        <small>Version 1.0.0</small>
+
+        <small>© ALEXA</small>
+
+    </div>
+
+</aside>
+
+<!-- Floating AI -->
+
+<button
+id="btnAlexaAI"
+type="button"
+class="floating-ai">
+
+<i class="fa-solid fa-robot"></i>
+
+</button>
+
+<!-- Toast -->
+
+<div
+id="toastContainer">
+</div>
+
+<!-- Modal -->
+
+<div
+id="modalContainer"
+class="modal-container">
+
+<div
+id="modalOverlay"
+class="modal-overlay">
+
+</div>
+
+<div
+id="modalContent"
+class="modal-content">
+
+</div>
+
+</div>
+<!-- ========================= -->
+<!-- Templates -->
+<!-- ========================= -->
+
+<template id="bannerTemplate"></template>
+
+<template id="eventTemplate"></template>
+
+<template id="dailyTemplate"></template>
+
+<template id="notificationTemplate"></template>
+
+<template id="toastTemplate"></template>
+
+</div>
+<!-- ========================= -->
+<!-- Three.js -->
+<!-- ========================= -->
+
+<script
+type="module"
+src="js/three-scene.js">
+</script>
+
+<!-- Firebase -->
+
+<script
+type="module"
+src="js/firebase.js">
+</script>
+
+<!-- App -->
+
+<script
+type="module"
+src="js/app.js">
+</script>
+
+</body>
+
+</html>
+
+

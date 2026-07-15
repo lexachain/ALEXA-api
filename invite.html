@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LEXA Invite</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/invite.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+
+<body>
+
+<div id="loadingOverlay" class="loading-overlay" hidden>
+    <div class="loading-card">
+        <div class="loading-spinner"></div>
+        <p id="loadingText">Loading...</p>
+    </div>
+</div>
+
+<div id="overlay" class="overlay" hidden></div>
+
+<div id="toastContainer" class="toast-container"></div>
+
+<div class="referral-container">
+
+    <!-- HEADER -->
+    <header class="referral-header">
+        <a href="javascript:history.back()" class="back-btn" aria-label="Back">
+            <i class="fa-solid fa-arrow-left"></i>
+        </a>
+
+        <button
+            id="leaderboardBtn"
+            class="leaderboard-btn"
+            type="button"
+            aria-label="Leaderboard"
+        >
+            <i class="fa-solid fa-ranking-star"></i>
+        </button>
+    </header>
+
+    <!-- REFERRAL CARD -->
+    <section class="referral-card">
+
+        <div class="referral-icon">
+            <i class="fa-solid fa-users"></i>
+        </div>
+
+        <h3 id="username">Invite Friend</h3>
+
+        <p class="referral-subtitle">
+            Earn 0.7 LEXA for every active referral
+        </p>
+
+        <p class="card-label">My Referral Code</p>
+
+        <h3 id="referralCode">LEXA-XXXXXX</h3>
+
+        <p class="card-label">Referral Link</p>
+        <p id="referralLink" class="referral-link">
+            https://alexa.example/register.html?ref=LEXA-XXXXXX
+        </p>
+
+        <div class="action-row">
+            <button id="copyCodeBtn" type="button">Copy Code</button>
+            <button id="copyLinkBtn" type="button">Copy Link</button>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats-card">
+        <div class="stats-item">
+            <span>Invited Members</span>
+            <strong id="invitedMembers">0</strong>
+        </div>
+
+        <div class="stats-item">
+            <span>Referral Bonus</span>
+            <strong id="referralBonus">+0.00 LEXA</strong>
+        </div>
+    </section>
+
+    <!-- HISTORY -->
+    <section class="history-card">
+        <button id="toggleHistory" class="history-btn" type="button">
+            <span>Referral History</span>
+            <i class="fa-solid fa-chevron-down"></i>
+        </button>
+
+        <div id="historyContent" class="history-content">
+            <div class="empty-state">No referrals yet</div>
+        </div>
+    </section>
+
+    <!-- LEADERBOARD SHEET -->
+    <aside id="leaderboardSheet" class="leaderboard-sheet">
+        <div class="leaderboard-content">
+            <div class="sheet-handle"></div>
+
+            <h3>Top Inviters</h3>
+
+            <div id="leaderboardList">
+                <div class="empty-state">No ranking available</div>
+            </div>
+
+            <button id="closeLeaderboard" type="button">Close</button>
+        </div>
+    </aside>
+
+    <!-- COPY MODAL -->
+    <div id="copyModal" class="copy-modal">
+        <div class="copy-card">
+            <div class="copy-icon">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+
+            <h2 id="copyTitle">Success</h2>
+
+            <p id="copyMessage">Referral code copied</p>
+
+            <button id="copyOkBtn" type="button">Continue</button>
+        </div>
+    </div>
+
+    <!-- BOTTOM NAV -->
+    <nav id="bottomNav" class="bottom-nav">
+        <button id="navHome" type="button" class="nav-item" data-page="home">
+            <i class="fa-solid fa-house"></i>
+            <span>Home</span>
+        </button>
+
+        <button id="navApps" type="button" class="nav-item" data-page="apps">
+            <i class="fa-solid fa-table-cells-large"></i>
+            <span>Apps</span>
+        </button>
+
+        <button id="navCommunity" type="button" class="nav-item" data-page="community">
+            <i class="fa-solid fa-user-group"></i>
+            <span>Community</span>
+        </button>
+
+        <button id="navInvite" type="button" class="nav-item" data-page="invite">
+            <i class="fa-solid fa-user-plus"></i>
+            <span>Invite</span>
+        </button>
+
+        <button id="navWallet" type="button" class="nav-item" data-page="wallet">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Wallet</span>
+        </button>
+    </nav>
+
+</div>
+
+<script type="module" src="js/invite.js"></script>
+</body>
+</html>

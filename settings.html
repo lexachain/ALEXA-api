@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>LEXA Settings</title>
+
+<link rel="stylesheet" href="css/style.css">
+<link rel="stylesheet" href="css/settings.css">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css"/>
+
+</head>
+
+<body class="settings-body">
+
+<div class="bg-gradient"></div>
+
+<div class="settings-page">
+
+    <!-- HEADER -->
+    <div class="settings-header">
+        <i class="fa-solid fa-gear"></i>
+        <span>Settings</span>
+    </div>
+
+    <!-- CARD 1 -->
+    <div class="settings-group">
+
+        <a href="profile.html" class="settings-item">
+            <i class="fa-solid fa-user"></i>
+            <span>Profile</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+        <a href="invite.html" class="settings-item">
+            <i class="fa-solid fa-users"></i>
+            <span>Mining Team</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+        <a href="kyc.html" class="settings-item">
+            <i class="fa-solid fa-id-card"></i>
+            <span>KYC Verification</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+        <a href="pin.html" class="settings-item">
+            <i class="fa-solid fa-lock"></i>
+            <span>Lock Screen / PIN</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+    </div>
+
+    <!-- CARD 2 -->
+    <div class="settings-group">
+
+        <div class="settings-item" id="communityToggle">
+
+            <i class="fa-solid fa-users"></i>
+
+            <span>Community</span>
+
+            <i class="fa-solid fa-chevron-down arrow"></i>
+
+        </div>
+
+        <div id="communityContent">
+
+    <a href="#" id="telegramLink" class="settings-item">
+
+        <i class="fa-brands fa-telegram"></i>
+
+        <span>Telegram</span>
+
+    </a>
+
+    <a href="#" id="twitterLink" class="settings-item">
+
+        <i class="fa-brands fa-x-twitter"></i>
+
+        <span>X (Twitter)</span>
+
+    </a>
+
+    <a href="#" id="facebookLink" class="settings-item">
+
+        <i class="fa-brands fa-facebook-f"></i>
+
+        <span>Facebook</span>
+
+    </a>
+
+</div>
+
+        <a href="#" class="settings-item">
+            <i class="fa-solid fa-bell"></i>
+            <span>Notifications</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+        <a href="#" class="settings-item">
+            <i class="fa-solid fa-language"></i>
+            <span>Language</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+        <a href="#" class="settings-item">
+            <i class="fa-solid fa-circle-question"></i>
+            <span>Help Center</span>
+            <i class="fa-solid fa-chevron-right arrow"></i>
+        </a>
+
+    </div>
+
+    <!-- LOGOUT -->
+    <div class="settings-group logout-group">
+
+        <a id="logoutBtn" class="settings-item logout">
+
+            <i class="fa-solid fa-right-from-bracket"></i>
+
+            <span>Logout</span>
+
+        </a>
+
+    </div>
+
+</div>
+<nav
+id="bottomNav"
+class="bottom-nav">
+
+<button
+id="navHome"
+type="button"
+class="nav-item active"
+data-page="home">
+
+<i class="fa-solid fa-house"></i>
+
+<span>Home</span>
+
+</button>
+
+<button
+id="navApps"
+type="button"
+class="nav-item"
+data-page="apps">
+
+<i class="fa-solid fa-table-cells-large"></i>
+
+<span>Apps</span>
+
+</button>
+
+<button
+    id="navCommunity"
+    type="button"
+    class="nav-item"
+    data-page="community">
+
+    <i class="fa-solid fa-user-group"></i>
+
+    <span>Community</span>
+
+</button>
+
+<button
+id="navInvite"
+type="button"
+class="nav-item"
+data-page="invite">
+
+<i class="fa-solid fa-user-plus"></i>
+
+<span>Invite</span>
+
+</button>
+
+<button
+id="navWallet"
+type="button"
+class="nav-item"
+data-page="wallet">
+
+<i class="fa-solid fa-wallet"></i>
+
+<span>Wallet</span>
+
+</button>
+
+</nav>
+<div id="logoutModal" class="logout-modal">
+
+<div class="logout-card">
+
+<div class="logout-icon">
+<i class="fa-solid fa-right-from-bracket"></i>
+</div>
+
+<h2>
+Logout Account
+</h2>
+
+<p>
+Are you sure you want to logout from LEXA?
+</p>
+
+<div class="logout-actions">
+
+<button id="cancelLogoutBtn">
+Cancel
+</button>
+
+<button id="confirmLogoutBtn">
+Logout
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<script
+type="module"
+src="js/settings.js">
+</script>
+</body>
+</html>

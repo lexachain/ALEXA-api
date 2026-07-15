@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id" dir="ltr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+name="mobile-web-app-capable"
+content="yes">
+
+<meta
+name="apple-mobile-web-app-capable"
+content="yes">
+
+<meta
+name="apple-mobile-web-app-status-bar-style"
+content="black-translucent">
+
+<meta
+name="apple-mobile-web-app-title"
+content="ALEXA">
+
+<meta
+name="viewport"
+content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+<meta
+name="theme-color"
+content="#D4AF37">
+
+<meta
+name="color-scheme"
+content="dark">
+
+<meta
+name="description"
+content="ALEXA Login">
+
+<title>ALEXA Login</title>
+
+<link
+rel="icon"
+href="assets/icons/favicon.png">
+
+<link
+rel="stylesheet"
+href="css/login.css">
+
+<link
+rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link
+rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
+
+<link
+rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+</head>
+
+<body id="loginBody">
+<noscript>
+
+ALEXA membutuhkan JavaScript agar dapat berjalan.
+
+</noscript>
+<!-- Background -->
+
+<div
+id="loginBackground"
+class="login-background">
+
+<div id="goldParticles"></div>
+
+<div
+id="loginAurora"
+class="login-aurora">
+</div>
+
+<div
+id="loginGrid"
+class="login-grid">
+</div>
+
+</div>
+
+<!-- Login -->
+
+<main id="loginPage" class="login-page">
+<!-- Logo -->
+
+<section
+id="logoSection">
+
+<img
+id="logoLX"
+src="assets/icons/logolx.png"
+alt="LX"
+draggable="false">
+
+<p
+id="appSlogan">
+
+Contribution Creates Value
+
+</p>
+
+</section>
+
+<!-- Pet -->
+
+<!-- ========================= -->
+<!-- PET -->
+<!-- ========================= -->
+
+<section
+id="petSection">
+
+<div
+id="loginPetViewer"
+class="login-pet-viewer">
+
+    <!-- Grid -->
+    <div class="login-pet-grid"></div>
+
+    <!-- Pulse Glow -->
+    <div class="login-pet-pulse-glow"></div>
+
+    <!-- Particles -->
+    <div class="login-pet-particles">
+
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+        <span></span>
+
+    </div>
+
+    <!-- Shine -->
+    <div class="login-pet-logo-shine"></div>
+
+    <!-- Pet -->
+    <img
+    id="loginPet"
+    class="login-pet-image login-pet-float"
+    src="assets/pets/pet.png"
+    alt="Alexa Pet"
+    draggable="false">
+
+    <!-- Shadow -->
+    <div class="login-pet-floor-shadow"></div>
+
+    <!-- Platform -->
+    <div class="login-pet-platform"></div>
+
+</div>
+
+</section>
+
+<!-- Welcome -->
+
+<section id="welcomeSection">
+
+    <p id="welcomeSubtitle">
+        Access the ALEXA 
+ • Contribute • Earn
+    </p>
+
+</section>
+<!-- Login -->
+
+<section
+id="loginActionSection">
+
+<button
+id="btnGoogleLogin"
+type="button"
+class="gold-btn"
+aria-label="Continue with Google">
+
+<img
+class="login-btn-icon"
+src="assets/icons/google.svg"
+alt="Google">
+
+<span>
+
+Continue with Google
+
+</span>
+
+</button>
+
+<div
+id="loginDivider">
+
+<span>
+
+OR
+
+</span>
+
+</div>
+
+<button
+id="btnTelegramLogin"
+type="button"
+class="outline-btn"
+aria-label="Continue with Telegram">
+
+<img
+class="login-btn-icon"
+src="assets/icons/telegram.svg"
+alt="Telegram">
+
+    <span>
+
+        Continue with Telegram
+
+    </span>
+
+</button>
+
+</section>
+
+<!-- Footer -->
+
+<footer id="loginFooter">
+
+<p>
+
+Powered by ALEXA Chain
+
+</p>
+
+</footer>
+</main>
+
+<!-- Loading -->
+
+<div
+id="loginLoading"
+class="loading-overlay"
+hidden>
+
+<div
+id="loginLoadingContent">
+
+<img
+id="loadingLogo"
+src="assets/icons/logo.png"
+alt="LX"
+draggable="false">
+
+<h2 id="loginLoadingTitle">
+
+Connecting...
+
+</h2>
+<div
+id="loadingSpinner"
+class="loading-spinner">
+</div>
+
+<div
+id="loginProgress">
+
+<div
+id="loginProgressFill"
+style="width:0%">
+</div>
+
+</div>
+<p
+id="loginLoadingPercent">
+
+0%
+
+</p>
+<p
+id="loginLoadingText">
+</p>
+
+</div>
+
+</div>
+<div
+id="toastContainer">
+</div>
+<div
+id="modalContainer"
+class="modal-container">
+
+<div
+id="modalOverlay"
+class="modal-overlay">
+</div>
+
+<div
+id="modalContent"
+class="modal-content">
+</div>
+
+</div>
+
+<script
+type="module"
+src="js/login.js">
+</script>
+
+</body>
+
+</html>

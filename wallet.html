@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="id" dir="ltr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#D4AF37">
+<meta name="color-scheme" content="dark">
+<meta name="description" content="ALEXA Wallet">
+<meta name="format-detection" content="telephone=no">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="ALEXA Wallet">
+
+<title>ALEXA Wallet</title>
+
+<link rel="icon" type="image/png" href="assets/icons/favicon.png">
+<link rel="apple-touch-icon" href="assets/icons/icon-192.png">
+<link rel="manifest" href="manifest.json">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+<link rel="stylesheet" href="css/base.css">
+<link rel="stylesheet" href="css/layout.css">
+<link rel="stylesheet" href="css/components.css">
+<link rel="stylesheet" href="css/animations.css">
+<link rel="stylesheet" href="css/pages/wallet.css">
+
+</head>
+
+<body id="body">
+
+<noscript>
+    ALEXA membutuhkan JavaScript agar aplikasi dapat berjalan.
+</noscript>
+
+<!-- Background -->
+<div class="wallet-background">
+    <div class="wallet-aurora"></div>
+    <div class="wallet-grid"></div>
+    <div class="wallet-particles">
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+    </div>
+</div>
+
+<!-- Main -->
+<main id="walletPage" class="wallet-page">
+
+    <!-- Header -->
+    <section class="wallet-header">
+        <button
+            id="btnBackWallet"
+            type="button"
+            class="wallet-back-btn"
+            aria-label="Back">
+            <i class="fa-solid fa-arrow-left"></i>
+        </button>
+
+        <div class="wallet-header-title">
+            <p>Wallet</p>
+            <h1>LEXA Wallet</h1>
+            <span>Manage balance, pending, and migration.</span>
+        </div>
+
+        <div class="wallet-header-badge">
+            <img src="assets/icons/lexa-token.png" alt="LEXA">
+            <div>
+                <small>Available</small>
+                <strong id="walletHeaderBalance">0.000000</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Address Card -->
+    <section class="wallet-address-card">
+        <div class="wallet-address-top">
+            <div>
+                <small>Wallet Address</small>
+                <h2 id="walletAddressText">LX7XXXXXXXXXXXXXXX</h2>
+            </div>
+            <button id="btnCopyWalletAddress" type="button" class="wallet-copy-btn">
+                <i class="fa-regular fa-copy"></i>
+                <span>Copy</span>
+            </button>
+        </div>
+
+        <div class="wallet-address-meta">
+            <div>
+                <small>Chain</small>
+                <strong id="walletChainText">BNB Smart Chain</strong>
+            </div>
+            <div>
+                <small>Status</small>
+                <strong id="walletStatusText">Active</strong>
+            </div>
+        </div>
+    </section>
+
+    <!-- Stats -->
+    <section class="wallet-stats">
+        <article class="wallet-stat-card">
+            <small>Available LEXA</small>
+            <strong id="walletBalanceText">0.000000</strong>
+        </article>
+
+        <article class="wallet-stat-card">
+            <small>Pending</small>
+            <strong id="walletPendingText">0.000000</strong>
+        </article>
+
+        <article class="wallet-stat-card">
+            <small>Total Received</small>
+            <strong id="walletReceivedText">0.000000</strong>
+        </article>
+
+        <article class="wallet-stat-card">
+            <small>Total Sent</small>
+            <strong id="walletSentText">0.000000</strong>
+        </article>
+    </section>
+
+    <!-- Create Wallet -->
+    <section class="wallet-create-card" id="walletCreateSection">
+        <div>
+            <small>Wallet Setup</small>
+            <h3>Create your ALEXA wallet</h3>
+            <p>
+                Wallet akan dibuat hanya saat kamu menekan tombol di bawah.
+            </p>
+        </div>
+
+        <button id="btnCreateWallet" type="button" class="gold-btn wallet-create-btn">
+            <i class="fa-solid fa-wallet"></i>
+            <span>Create Wallet</span>
+        </button>
+    </section>
+
+    <!-- Actions -->
+    <section class="wallet-action-grid">
+        <button id="btnSendLexa" type="button" class="wallet-action-btn">
+            <i class="fa-solid fa-paper-plane"></i>
+            <span>Send</span>
+        </button>
+
+        <button id="btnReceiveLexa" type="button" class="wallet-action-btn">
+            <i class="fa-solid fa-qrcode"></i>
+            <span>Receive</span>
+        </button>
+
+        <button id="btnMigrateLexa" type="button" class="wallet-action-btn">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Migrate</span>
+        </button>
+
+        <button id="btnHistoryLexa" type="button" class="wallet-action-btn">
+            <i class="fa-solid fa-clock-rotate-left"></i>
+            <span>History</span>
+        </button>
+    </section>
+
+    <!-- Migration -->
+    <section class="wallet-migration-card">
+        <div class="wallet-migration-top">
+            <div>
+                <small>Pending Release</small>
+                <h3 id="walletMigrationValue">0.000000 LEXA</h3>
+            </div>
+            <span class="wallet-migration-pill">7 Days</span>
+        </div>
+
+        <div class="wallet-progress">
+            <div id="walletMigrationFill" class="wallet-progress-fill"></div>
+        </div>
+
+        <div class="wallet-migration-bottom">
+            <span>Release Rate</span>
+            <strong id="walletReleaseRateText">30%</strong>
+        </div>
+    </section>
+
+    <!-- History -->
+    <section class="wallet-history-card">
+        <div class="wallet-section-head">
+            <h3>Recent Activity</h3>
+            <button id="btnSeeAllHistory" type="button">See all</button>
+        </div>
+
+        <div id="walletHistoryList" class="wallet-history-list">
+
+            <article class="wallet-history-item">
+                <div class="wallet-history-icon">
+                    <i class="fa-solid fa-arrow-down"></i>
+                </div>
+                <div class="wallet-history-content">
+                    <strong>Mining Reward</strong>
+                    <small>Pending LEXA added</small>
+                </div>
+                <span class="wallet-history-value positive">+0.100</span>
+            </article>
+
+            <article class="wallet-history-item">
+                <div class="wallet-history-icon">
+                    <i class="fa-solid fa-arrow-up"></i>
+                </div>
+                <div class="wallet-history-content">
+                    <strong>Migration</strong>
+                    <small>Released to wallet</small>
+                </div>
+                <span class="wallet-history-value">-0.030</span>
+            </article>
+
+        </div>
+    </section>
+
+</main>
+
+<!-- Toast -->
+<div id="toastContainer"></div>
+
+<!-- Modal -->
+<div id="modalContainer" class="modal-container">
+    <div id="modalOverlay" class="modal-overlay"></div>
+    <div id="modalContent" class="modal-content"></div>
+</div>
+
+<script type="module" src="js/firebase.js"></script>
+<script type="module" src="js/user.js"></script>
+<script type="module" src="js/wallet.js"></script>
+<script type="module" src="js/wallet-page.js"></script>
+
+</body>
+</html>
