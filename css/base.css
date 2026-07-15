@@ -1,0 +1,556 @@
+/* ==========================================================
+   ALEXA
+   File : base.css
+   Description : Global Reset & Base Style
+========================================================== */
+
+/* ===========================
+   RESET
+=========================== */
+
+*,
+*::before,
+*::after{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+}
+
+html{
+
+    font-size:16px;
+
+    scroll-behavior:smooth;
+
+    -webkit-text-size-adjust:100%;
+
+    color-scheme:dark;
+
+}
+
+body{
+
+    min-height:100vh;
+
+    background:var(--bg);
+
+    color:var(--text);
+
+    font-family:"Poppins",sans-serif;
+
+    font-size:14px;
+
+    line-height:1.5;
+
+    overflow-x:hidden;
+
+    padding-top:var(--safe-top);
+
+    padding-bottom:var(--safe-bottom);
+
+    -webkit-font-smoothing:antialiased;
+
+    text-rendering:optimizeLegibility;
+
+}
+
+/* ===========================
+   ROOT
+=========================== */
+
+:root{
+
+    /* Background */
+
+    --bg:#0D111A;
+    --surface:#1B2232;
+    --surface-2:#252E40;
+
+    /* Gold Theme */
+
+    --gold:#FFD75E;
+    --gold-light:#FFF2B5;
+    --gold-dark:#E2B53A;
+
+    /* Accent */
+
+    --emerald:#53D9A3;
+    --emerald-soft:#8BF0C9;
+    --blue:#6AA9FF;
+
+    /* Text */
+
+    --white:#FFFFFF;
+    --text:#FFFFFF;
+    --text-secondary:#AEB8C9;
+    --text-muted:#8995AA;
+
+    /* Status */
+
+    --success:#53D9A3;
+    --warning:#FFC857;
+    --danger:#FF5C73;
+    --info:#6AA9FF;
+/* Glass */
+
+--glass-bg:rgba(35,46,67,.58);
+
+--glass-border:rgba(255,255,255,.08);
+
+--glass-highlight:rgba(255,255,255,.10);
+
+--glass-blur:16px;
+/* Blur */
+
+--blur-sm:8px;
+--blur:16px;
+--blur-lg:28px;
+/* Opacity */
+
+--opacity-low:.08;
+--opacity-medium:.18;
+--opacity-high:.35;
+/* Ring */
+
+--ring-size:210px;
+--ring-border:2px;
+/* Particle */
+
+--particle-size:4px;
+
+/* Platform */
+
+--platform-glow-height:90px;
+
+/* Glow */
+
+--gold-glow:
+0 0 25px rgba(255,215,94,.45);
+
+--emerald-glow:
+0 0 25px rgba(83,217,163,.28);
+
+--blue-glow:
+0 0 25px rgba(106,169,255,.30);
+
+    /* Border */
+
+    --border:rgba(255,255,255,.08);
+
+    /* Shadow */
+
+    --shadow-sm:0 4px 12px rgba(0,0,0,.18);
+    --shadow:0 12px 32px rgba(0,0,0,.32);
+    --shadow-lg:0 24px 60px rgba(0,0,0,.48);
+
+    /* Radius */
+
+    --radius-sm:10px;
+    --radius:18px;
+    --radius-lg:24px;
+    --radius-xl:30px;
+/* Space */
+
+--space-1:4px;
+--space-2:8px;
+--space-3:12px;
+--space-4:16px;
+--space-5:20px;
+--space-6:24px;
+--space-7:32px;
+/* Transition */
+
+--transition-fast:.18s ease;
+--transition-normal:.25s ease;
+--transition-slow:.45s ease;
+
+--transition:var(--transition-normal);
+
+/* Animation */
+
+--float-duration:3s;
+
+--pulse-duration:2.5s;
+
+--rotate-duration:12s;
+--spin-duration:16s;
+
+--spark-duration:2s;
+
+--shine-duration:5s;
+    /* Layout */
+
+    --header-height:72px;
+    --bottom-nav-height:82px;
+    --app-width:520px;
+
+/* Hero */
+
+--hero-width:min(100%,var(--app-width));
+
+--hero-height:430px;
+
+--hero-card-width:250px;
+
+--hero-card-height:290px;
+
+--platform-size:210px;
+
+--hud-width:170px;
+
+    /* ==========================================
+       HERO
+    ========================================== */
+
+    --hero-padding:16px;
+    --hero-gap:18px;
+    --hero-side-size:60px;
+/* Hero Layer */
+
+--z-hero-bg:5;
+
+--z-hero-grid:10;
+
+--z-hero-glow:20;
+
+--z-hero-pet:30;
+
+--z-hero-hud:40;
+
+--z-hero-badge:50;
+
+/* Icon */
+
+--icon-sm:18px;
+
+--icon-md:22px;
+
+--icon-lg:28px;
+    /* ==========================================
+       STATUS
+    ========================================== */
+
+    --status-radius:24px;
+
+ /* Card */
+
+    --card-radius:26px;
+    --card-border:1px solid rgba(255,255,255,.08);
+    --card-shadow:0 18px 45px rgba(0,0,0,.35);
+
+    /* Button */
+
+    --button-radius:18px;
+    --button-height:50px;
+
+    /* Safe Area */
+
+    --safe-top:env(safe-area-inset-top);
+    --safe-bottom:env(safe-area-inset-bottom);
+
+    /* Layer */
+
+    --z-base:1;
+    --z-header:100;
+    --z-drawer:200;
+    --z-floating:300;
+    --z-modal:400;
+    --z-loading:9999;
+
+}
+
+/* ===========================
+   TYPOGRAPHY
+=========================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6{
+
+    font-weight:600;
+
+    color:var(--white);
+
+}
+
+p{
+
+    color:var(--text-secondary);
+
+}
+
+small{
+
+    color:var(--text-muted);
+
+}
+
+/* ===========================
+   LINK
+=========================== */
+
+a{
+
+    color:inherit;
+
+    text-decoration:none;
+
+}
+
+a:hover{
+
+    text-decoration:none;
+
+}
+
+/* ===========================
+   IMAGE
+=========================== */
+
+img{
+
+    display:block;
+
+    max-width:100%;
+
+    user-select:none;
+
+    -webkit-user-drag:none;
+
+}
+
+/* ===========================
+   BUTTON
+=========================== */
+
+button{
+
+    font:inherit;
+
+    border:none;
+
+    outline:none;
+
+    cursor:pointer;
+
+    background:none;
+
+    color:inherit;
+
+    transition:var(--transition);
+
+    -webkit-tap-highlight-color:transparent;
+
+}
+
+button:disabled{
+
+    opacity:.55;
+
+    cursor:not-allowed;
+
+}
+
+/* ===========================
+   INPUT
+=========================== */
+
+input,
+textarea,
+select{
+
+    font:inherit;
+
+    color:inherit;
+
+    outline:none;
+
+    border:none;
+
+    background:none;
+
+}
+
+textarea{
+
+    resize:none;
+
+}
+
+/* ===========================
+   LIST
+=========================== */
+
+ul,
+ol{
+
+    list-style:none;
+
+}
+
+/* ===========================
+   TABLE
+=========================== */
+
+table{
+
+    width:100%;
+
+    border-collapse:collapse;
+
+}
+
+/* ===========================
+   SCROLLBAR
+=========================== */
+
+::-webkit-scrollbar{
+
+    width:6px;
+
+    height:6px;
+
+}
+
+::-webkit-scrollbar-track{
+
+    background:transparent;
+
+}
+
+::-webkit-scrollbar-thumb{
+
+    background:rgba(255,215,94,.45);
+
+    border-radius:20px;
+
+}
+
+::-webkit-scrollbar-thumb:hover{
+
+    background:var(--gold);
+
+}
+
+/* ===========================
+   SELECTION
+=========================== */
+
+::selection{
+
+    background:var(--gold);
+
+    color:#111;
+
+}
+
+/* ===========================
+   FOCUS
+=========================== */
+
+:focus-visible{
+
+    outline:2px solid var(--gold);
+
+    outline-offset:2px;
+
+}
+
+/* ===========================
+   HIDDEN
+=========================== */
+
+[hidden]{
+
+    display:none !important;
+
+}
+
+/* ===========================
+   UTILITIES
+=========================== */
+
+.text-center{ text-align:center; }
+
+.text-left{ text-align:left; }
+
+.text-right{ text-align:right; }
+
+.w-100{ width:100%; }
+
+.h-100{ height:100%; }
+
+.d-none{ display:none !important; }
+
+.d-flex{ display:flex; }
+
+.flex-column{ flex-direction:column; }
+
+.align-center{ align-items:center; }
+
+.justify-between{ justify-content:space-between; }
+
+.justify-center{ justify-content:center; }
+
+/* ==========================================
+   RESPONSIVE TOKENS
+========================================== */
+
+@media (max-width:480px){
+
+:root{
+
+    --hero-card-width:220px;
+
+    --hero-card-height:260px;
+
+    --pet-size:180px;
+
+    --platform-size:180px;
+
+    --hud-width:150px;
+
+    --pet-badge-size:50px;
+
+}
+
+}
+
+@media (min-width:768px){
+
+:root{
+
+    --hero-card-width:280px;
+
+    --hero-card-height:320px;
+
+    --pet-size:250px;
+
+    --platform-size:240px;
+
+    --hud-width:190px;
+
+}
+
+}
+
+@media (min-width:1024px){
+
+:root{
+
+    --hero-card-width:320px;
+
+    --hero-card-height:360px;
+
+    --pet-size:280px;
+
+    --platform-size:280px;
+
+    --hud-width:220px;
+
+}
+
+}
