@@ -8,10 +8,13 @@
    CONFIG
 ========================================================== */
 
-const APP_NAME = "ALEXA API";
-const APP_VERSION = "1.0.0";
-
-const APP_URL = "https://alexa-chain.web.app";
+function config(env) {
+    return {
+        APP_NAME: env.APP_NAME || "ALEXA API",
+        APP_VERSION: env.APP_VERSION || "1.0.0",
+        APP_URL: env.APP_URL || "https://alexa-chain.web.app"
+    };
+}
 const MINING_DURATION = 24 * 60 * 60 * 1000; // 24 jam
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const FIRESTORE_BASE = "https://firestore.googleapis.com/v1/projects";
@@ -23,44 +26,82 @@ let tokenExpire = 0;
    CORS
 ========================================================== */
 
-const CORS_HEADERS = {
-    "Access-Control-Allow-Origin": APP_URL,
-    "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
-    "Access-Control-Max-Age": "86400"
-};
+function corsHeaders(env) {
+
+    return {
+
+        "Access-Control-Allow-Origin": config(env).APP_URL,
+
+        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+
+        "Access-Control-Allow-Headers":
+            "Content-Type, Authorization",
+
+        "Access-Control-Max-Age": "86400"
+
+    };
+
+}
 
 /* ==========================================================
    RESPONSE
 ========================================================== */
 
-function jsonResponse(data, status = 200) {
+function jsonResponse(env, data, status = 200) {
+
     return new Response(JSON.stringify(data), {
+
         status,
+
         headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            ...CORS_HEADERS
+
+            "Content-Type":
+                "application/json; charset=utf-8",
+
+            ...corsHeaders(env)
+
         }
+
     });
+
 }
 
-function success(data = {}, status = 200) {
-    return jsonResponse({
+function success(env, data = {}, status = 200) {
+
+    const cfg = config(env);
+
+    return jsonResponse(env, {
+
         success: true,
-        app: APP_NAME,
-        version: APP_VERSION,
+
+        app: cfg.APP_NAME,
+
+        version: cfg.APP_VERSION,
+
         ...data
+
     }, status);
+
 }
 
-function error(message = "Unknown Error", status = 500, extra = {}) {
-    return jsonResponse({
+function error(env, message = "Unknown Error", status = 500, extra = {}) {
+
+    const cfg = config(env);
+
+    return jsonResponse(env, {
+
         success: false,
-        app: APP_NAME,
-        version: APP_VERSION,
+
+        app: cfg.APP_NAME,
+
+        version: cfg.APP_VERSION,
+
         message,
+
         ...extra
+
     }, status);
+
 }
 
 /* ==========================================================
@@ -467,7 +508,8 @@ async function ensureUserReferral(env, uid) {
     if (!user) return null;
 
     const referralCode = buildReferralCode(user, uid);
-    const referralLink = `${APP_URL}/register.html?ref=${encodeURIComponent(referralCode)}`;
+    const referralLink =
+    `${config(env).APP_URL}/?ref=${encodeURIComponent(referralCode)}`;
 
     if (user.referralCode !== referralCode || user.referralLink !== referralLink) {
         await setUserDoc(env, uid, {
@@ -703,14 +745,14 @@ async function listWalletHistory(env, uid) {
    ENDPOINTS
 ========================================================== */
 
-async function handleServerPing() {
-    return success({
+async function handleServerPing(env) {
+    return success(env, {
         message: "ALEXA API Online"
     });
 }
 
-async function handleServerTime() {
-    return success({
+async function handleServerTime(env) {
+    return success(env, {
         timestamp: getNow(),
         iso: new Date().toISOString()
     });
@@ -720,7 +762,7 @@ async function handleMiningSync(env, request) {
     const body = await readJson(request);
     const uid = body.firebaseUid || body.uid;
 
-    if (!uid) return error("firebaseUid is required.", 400);
+    if (!uid) return error(env, "firebaseUid is required.", 400);
 
     const now = getNow();
     const raw = await getMiningDoc(env, uid);
@@ -735,7 +777,7 @@ async function handleMiningSync(env, request) {
         });
     }
 
-    return success({
+    return success(env, {
         serverTime: now,
         mining: {
             ...mining,
@@ -757,7 +799,7 @@ async function handleMiningStart(env, request) {
     const body = await readJson(request);
     const uid = body.firebaseUid || body.uid;
 
-    if (!uid) return error("firebaseUid is required.", 400);
+    if (!uid) return error(env,"firebaseUid is required.", 400);
 
     const now = getNow();
     const raw = await getMiningDoc(env, uid);
@@ -765,7 +807,7 @@ async function handleMiningStart(env, request) {
 
     if (mining.status === "mining") {
         const statusInfo = calculateMiningStatus(mining);
-        return success({
+        return success(env, {
             status: statusInfo.status,
             nextClaim: statusInfo.nextClaim,
             remaining: statusInfo.remaining,
@@ -774,7 +816,7 @@ async function handleMiningStart(env, request) {
     }
 
     if (mining.status === "claim") {
-        return success({
+        return success(env, {
             status: "claim",
             nextClaim: mining.time?.nextClaim || null,
             remaining: 0,
@@ -804,7 +846,7 @@ async function handleMiningStart(env, request) {
 
     await setMiningDoc(env, uid, updated);
 
-    return success({
+    return success(env, {
         status: "mining",
         serverTime: now,
         nextClaim,
@@ -817,7 +859,7 @@ async function handleMiningStatus(env, request) {
     const body = await readJson(request);
     const uid = body.firebaseUid || body.uid;
 
-    if (!uid) return error("firebaseUid is required.", 400);
+    if (!uid) return error(env,"firebaseUid is required.", 400);
 
     const now = getNow();
     const raw = await getMiningDoc(env, uid);
@@ -832,7 +874,7 @@ async function handleMiningStatus(env, request) {
         });
     }
 
-    return success({
+    return success(env, {
         status: statusInfo.status,
         serverTime: now,
         remaining: statusInfo.remaining,
@@ -844,22 +886,22 @@ async function handleMiningClaim(env, request) {
     const body = await readJson(request);
     const uid = body.firebaseUid || body.uid;
 
-    if (!uid) return error("firebaseUid is required.", 400);
+    if (!uid) return error(env,"firebaseUid is required.", 400);
 
     const token = getBearerToken(request);
     const authUser = await verifyFirebaseIdToken(env, token);
 
     if (authUser.uid !== uid) {
-        return error("Unauthorized mining claim.", 403);
+        return error(env,"Unauthorized mining claim.", 403);
     }
 
     if (!checkRateLimit(request, uid)) {
-        return error("Too many requests.", 429);
+        return error(env,"Too many requests.", 429);
     }
 
     const lockKey = `mining:${uid}`;
     if (!withLock(lockKey)) {
-        return error("Mining claim is already processing.", 409);
+        return error(env,"Mining claim is already processing.", 409);
     }
 
     try {
@@ -870,7 +912,7 @@ async function handleMiningClaim(env, request) {
 
         const canClaim = mining.status === "claim" || statusInfo.status === "claim";
         if (!canClaim) {
-            return error("Mining is not ready to claim.", 400, {
+            return error(env,"Mining is not ready to claim.", 400, {
                 status: mining.status || "idle",
                 remaining: statusInfo.remaining
             });
@@ -924,7 +966,7 @@ updatedAt:now
 
         await setMiningDoc(env, uid, updated);
 
-        return success({
+        return success(env, {
             status: "idle",
             serverTime: now,
             reward,
@@ -941,13 +983,14 @@ async function handleReferral(env, request) {
     const body = await readJson(request);
     const uid = body.firebaseUid || body.uid;
 
-    if (!uid) return error("firebaseUid is required.", 400);
+    if (!uid) return error(env,"firebaseUid is required.", 400);
 
     const user = await ensureUserReferral(env, uid);
-    if (!user) return error("User not found.", 404);
+    if (!user) return error(env, "User not found.", 404);
 
     const referralCode = user.referralCode || buildReferralCode(user, uid);
-    const referralLink = `${APP_URL}/register.html?ref=${encodeURIComponent(referralCode)}`;
+    const referralLink =
+    `${config(env).APP_URL}/?ref=${encodeURIComponent(referralCode)}`;
 
     const history = await runQuery(env, {
         from: [{ collectionId: "users" }],
@@ -998,7 +1041,7 @@ async function handleReferral(env, request) {
     const invitedMembers = historyList.length;
     const referralBonus = historyList.reduce((sum, item) => sum + Number(item.bonus || 0), 0);
 
-    return success({
+    return success(env, {
         user: {
             uid: user.id || uid,
             username: user.username || user.displayName || "User",
@@ -1016,17 +1059,17 @@ async function handleWallet(env, request) {
     const body = await readJson(request);
     const uid = body.firebaseUid || body.uid;
 
-    if (!uid) return error("firebaseUid is required.", 400);
+    if (!uid) return error(env,"firebaseUid is required.", 400);
 
     const token = getBearerToken(request);
     const authUser = await verifyFirebaseIdToken(env, token);
 
     if (authUser.uid !== uid) {
-        return error("Unauthorized wallet access.", 403);
+        return error(env,"Unauthorized wallet access.", 403);
     }
 
     if (!checkRateLimit(request, uid)) {
-        return error("Too many requests.", 429);
+        return error(env,"Too many requests.", 429);
     }
 
     const wallet = await getWalletDoc(env, uid);
@@ -1047,7 +1090,7 @@ async function handleWallet(env, request) {
 if (!wallet) {
     await setWalletDoc(env, uid, safeWallet);
 }
-    return success({
+    return success(env, {
         wallet: safeWallet,
         user: {
             uid,
@@ -1061,22 +1104,22 @@ async function handleWalletHistory(env, request) {
     const body = await readJson(request);
     const uid = body.firebaseUid || body.uid;
 
-    if (!uid) return error("firebaseUid is required.", 400);
+    if (!uid) return error(env,"firebaseUid is required.", 400);
 
     const token = getBearerToken(request);
     const authUser = await verifyFirebaseIdToken(env, token);
 
     if (authUser.uid !== uid) {
-        return error("Unauthorized wallet history access.", 403);
+        return error(env,"Unauthorized wallet history access.", 403);
     }
 
     if (!checkRateLimit(request, uid)) {
-        return error("Too many requests.", 429);
+        return error(env,"Too many requests.", 429);
     }
 
     const history = await listWalletHistory(env, uid);
 
-    return success({
+    return success(env, {
         history
     });
 }
@@ -1103,7 +1146,9 @@ export default {
     async fetch(request, env) {
         try {
             if (request.method === "OPTIONS") {
-                return new Response(null, { headers: CORS_HEADERS });
+                return new Response(null, {
+    headers: corsHeaders(env)
+});
             }
 
             const url = new URL(request.url);
@@ -1119,10 +1164,10 @@ export default {
                 return await handler(env, request);
             }
 
-            return error("Endpoint Not Found", 404);
+            return error(env, "Endpoint Not Found", 404);
         } catch (err) {
             console.error(err);
-            return error(err?.message || "Internal Error", 500);
+            return error(env, err?.message || "Internal Error", 500);
         }
     }
 };
