@@ -109,7 +109,7 @@ async function referralProfile(env, uid) {
         invitedMembers: Array.isArray(history)
             ? history.length
             : 0,
-        referralBonus: 0.7,
+        referralBonus: 0,
         history,
         leaderboard
     });
