@@ -4,7 +4,7 @@
    Description : Response Helpers
 ========================================================== */
 
-import { config } from "./config.js";
+import { config, getAllowedOrigins } from "./config.js";
 
 /* ==========================================================
    CORS
@@ -12,16 +12,30 @@ import { config } from "./config.js";
 
 export function corsHeaders(env) {
 
+    const origins = getAllowedOrigins(env);
+    const origin = env.REQUEST_ORIGIN || "";
+
     return {
 
-        "Access-Control-Allow-Origin": config(env).APP_URL,
+        "Access-Control-Allow-Origin":
+            origins.includes(origin)
+                ? origin
+                : origins[0],
 
-        "Access-Control-Allow-Methods": "GET,POST,OPTIONS",
+        "Access-Control-Allow-Methods":
+            "GET,POST,OPTIONS",
 
         "Access-Control-Allow-Headers":
             "Content-Type, Authorization",
 
-        "Access-Control-Max-Age": "86400"
+        "Access-Control-Allow-Credentials":
+            "true",
+
+        "Access-Control-Max-Age":
+            "86400",
+
+        "Vary":
+            "Origin"
 
     };
 
