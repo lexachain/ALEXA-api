@@ -11,9 +11,12 @@
 import { success, error } from "../helpers/response.js";
 import { requireUser, checkRateLimit } from "../helpers/security.js";
 import { readJson } from "../helpers/request.js";
-
+import {
+    getDocument
+} from "../helpers/firestore.js";
 import {
     getReferralDoc,
+    normalizeReferral,
     getReferralLink,
     getReferralHistory,
     getReferralLeaderboard,
@@ -84,23 +87,34 @@ export async function referralRoute(env, request, path) {
 ========================================================== */
 
 async function referralProfile(env, uid) {
+
     const referral = normalizeReferral(
         await getReferralDoc(env, uid)
     );
 
-    const history = await getReferralHistory(env, uid);
-    const leaderboard = await getReferralLeaderboard(env);
+    const history =
+        await getReferralHistory(env, uid);
+
+    const leaderboard =
+        await getReferralLeaderboard(env);
+
+    // Ambil profil user dari Firestore
+    const user =
+        await getDocument(env, `users/${uid}`);
 
     return success(env, {
+        user,
         referral,
         referralLink: getReferralLink(env, uid),
-        invitedMembers: Array.isArray(history) ? history.length : 0,
+        invitedMembers: Array.isArray(history)
+            ? history.length
+            : 0,
         referralBonus: 0.7,
         history,
         leaderboard
     });
-}
 
+}
 /* ==========================================================
    LINK
 ========================================================== */
