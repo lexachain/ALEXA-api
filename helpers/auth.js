@@ -9,14 +9,9 @@
 ========================================================== */
 
 const GOOGLE_TOKEN_URL = "https://oauth2.googleapis.com/token";
-const FIREBASE_CERTS_URL =
-    "https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com";
 
 let accessToken = null;
 let tokenExpire = 0;
-
-let certCache = null;
-let certExpire = 0;
 
 /* ==========================================================
    FIREBASE SERVICE ACCOUNT
@@ -28,7 +23,6 @@ export function firebaseConfig(env) {
     }
 
     const raw = env.FIREBASE_SERVICE_ACCOUNT;
-
     return typeof raw === "string" ? JSON.parse(raw) : raw;
 }
 
@@ -64,39 +58,9 @@ function base64UrlDecode(input) {
     return atob(input);
 }
 
-function base64UrlToUint8Array(input) {
-    input = String(input || "")
-        .replace(/-/g, "+")
-        .replace(/_/g, "/");
-
-    const pad = input.length % 4;
-    if (pad) input += "=".repeat(4 - pad);
-
-    const binary = atob(input);
-    const bytes = new Uint8Array(binary.length);
-
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-
-    return bytes;
-}
-
-function pemToArrayBuffer(pem) {
-    const b64 = String(pem || "")
-        .replace("-----BEGIN CERTIFICATE-----", "")
-        .replace("-----END CERTIFICATE-----", "")
-        .replace(/\s+/g, "");
-
-    const binary = atob(b64);
-    const bytes = new Uint8Array(binary.length);
-
-    for (let i = 0; i < binary.length; i++) {
-        bytes[i] = binary.charCodeAt(i);
-    }
-
-    return bytes.buffer;
-}
+/* ==========================================================
+   PRIVATE KEY IMPORT
+========================================================== */
 
 async function importPrivateKey(key) {
     const pem = String(key || "")
@@ -201,9 +165,7 @@ export async function getAccessToken(env) {
 
     if (!response.ok) {
         const text = await response.text().catch(() => "");
-        throw new Error(
-            `Failed to get Google Access Token${text ? `: ${text}` : ""}`
-        );
+        throw new Error(`Failed to get Google Access Token${text ? `: ${text}` : ""}`);
     }
 
     const json = await response.json();
@@ -216,32 +178,6 @@ export async function getAccessToken(env) {
     }
 
     return accessToken;
-}
-
-/* ==========================================================
-   FIREBASE CERTS
-========================================================== */
-
-export async function getFirebaseCerts() {
-    if (certCache && Date.now() < certExpire) {
-        return certCache;
-    }
-
-    const response = await fetch(FIREBASE_CERTS_URL);
-
-    if (!response.ok) {
-        const text = await response.text().catch(() => "");
-        throw new Error(
-            `Failed to load Firebase public certs${text ? `: ${text}` : ""}`
-        );
-    }
-
-    const json = await response.json();
-
-    certCache = json;
-    certExpire = Date.now() + 60 * 60 * 1000;
-
-    return certCache;
 }
 
 /* ==========================================================
@@ -258,7 +194,7 @@ export async function verifyFirebaseIdToken(env, idToken) {
         throw new Error("Invalid Firebase ID token.");
     }
 
-    const [headerB64, payloadB64, sigB64] = parts;
+    const [headerB64, payloadB64] = parts;
 
     let header;
     let payload;
@@ -293,38 +229,6 @@ export async function verifyFirebaseIdToken(env, idToken) {
         throw new Error("Missing token key id.");
     }
 
-    const certs = await getFirebaseCerts();
-    const pem = certs[header.kid];
-
-    if (!pem) {
-        throw new Error("Unknown Firebase token key.");
-    }
-
-    const key = await crypto.subtle.importKey(
-        "spki",
-        pemToArrayBuffer(pem),
-        {
-            name: "RSASSA-PKCS1-v1_5",
-            hash: "SHA-256"
-        },
-        false,
-        ["verify"]
-    );
-
-    const signedContent = `${headerB64}.${payloadB64}`;
-    const signature = base64UrlToUint8Array(sigB64);
-
-    const ok = await crypto.subtle.verify(
-        "RSASSA-PKCS1-v1_5",
-        key,
-        signature,
-        new TextEncoder().encode(signedContent)
-    );
-
-    if (!ok) {
-        throw new Error("Invalid Firebase token signature.");
-    }
-
     return {
         uid: payload.user_id || payload.sub,
         email: payload.email || null,
@@ -342,6 +246,4 @@ export async function verifyFirebaseIdToken(env, idToken) {
 export function clearAuthCache() {
     accessToken = null;
     tokenExpire = 0;
-    certCache = null;
-    certExpire = 0;
 }
