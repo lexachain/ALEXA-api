@@ -9,7 +9,8 @@
 ========================================================== */
 
 import { getDocument, setDocument } from "./firestore.js";
-import { getNow, randomToken, sha256 } from "./request.js";
+import { getNow } from "./request.js";
+import { randomToken, sha256 } from "./security.js";
 import { appendHistory } from "./history.js";
 
 /* ==========================================================
