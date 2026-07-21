@@ -84,10 +84,20 @@ export async function referralRoute(env, request, path) {
 ========================================================== */
 
 async function referralProfile(env, uid) {
-    const referral = await getReferralDoc(env, uid);
+    const referral = normalizeReferral(
+        await getReferralDoc(env, uid)
+    );
+
+    const history = await getReferralHistory(env, uid);
+    const leaderboard = await getReferralLeaderboard(env);
 
     return success(env, {
-        referral
+        referral,
+        referralLink: getReferralLink(env, uid),
+        invitedMembers: Array.isArray(history) ? history.length : 0,
+        referralBonus: 0.7,
+        history,
+        leaderboard
     });
 }
 
