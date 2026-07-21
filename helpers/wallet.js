@@ -10,14 +10,14 @@
 
 import { getDocument, setDocument } from "./firestore.js";
 import { getNow } from "./request.js";
-import { randomToken, sha256 } from "./security.js";
+import { sha256 } from "./security.js";
 import { appendHistory } from "./history.js";
 
 /* ==========================================================
    CONFIG
 ========================================================== */
 
-const WALLET_PREFIX = "LX";
+const WALLET_PREFIX = "LX7";
 const WALLET_CHAIN = "LEXA Chain";
 const USDT_CHAIN = "BNB Smart Chain";
 
@@ -125,10 +125,26 @@ function generateRecoveryPhrase(wordCount = 12) {
     return phrase;
 }
 
-async function deriveAddress(publicKey, uid = "") {
-    const seed = `${publicKey}:${uid}:${randomToken(8)}:${getNow()}`;
-    const digest = await sha256(seed);
-    return `${WALLET_PREFIX}${digest.slice(0, 32).toUpperCase()}`;
+async function generateWalletAddress(env) {
+
+    while (true) {
+
+        const bytes = crypto.getRandomValues(new Uint8Array(12));
+
+        const hex = Array.from(bytes)
+            .map(b => b.toString(16).padStart(2, "0"))
+            .join("")
+            .toUpperCase()
+            .slice(0, 23);
+
+        const address = WALLET_PREFIX + hex;
+
+        const exists = await getDocument(env, `walletAddress/${address}`);
+
+        if (!exists) {
+            return address;
+        }
+    }
 }
 
 async function encryptPrivateKey(privateKey, pin) {
@@ -177,7 +193,7 @@ export async function createWallet(env, uid) {
 
     const now = getNow();
     const { privateKey, publicKey } = await generateKeyPair();
-    const address = await deriveAddress(publicKey, uid);
+    const address = await generateWalletAddress(env);
     const recoveryPhrase = generateRecoveryPhrase(12);
 
     const wallet = {
@@ -207,7 +223,10 @@ export async function createWallet(env, uid) {
     };
 
     await setWalletDoc(env, uid, wallet);
-
+await setDocument(env, `walletAddress/${address}`, {
+    uid,
+    createdAt: now
+});
     await appendHistory(env, uid, {
         type: "wallet",
         title: "Wallet Created",

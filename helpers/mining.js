@@ -39,19 +39,15 @@ export function defaultMiningData() {
         miningDuration: MINING_DURATION,
         boost: 1,
         multiplier: 1,
-        rewardVersion: 1,
         currentReward: 0.7,
         pendingLexa: 0,
         totalLexa: 0,
         stats: {
     totalSession: 0,
     totalStart: 0,
-    totalClaimed: 0,
+    claimCount: 0,
     firstStarted: false
 },
-        settings: {
-            autoRestart: false
-        },
         time: {
             lastStart: null,
             nextClaim: null,
