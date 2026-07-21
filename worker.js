@@ -84,6 +84,10 @@ function resolveRoute(method, path) {
 export default {
     async fetch(request, env) {
         try {
+
+            // Simpan origin request
+            env.REQUEST_ORIGIN = request.headers.get("Origin") || "";
+
             if (request.method === "OPTIONS") {
                 return new Response(null, {
                     headers: corsHeaders(env)
@@ -105,7 +109,9 @@ export default {
             }
 
             return await route.handler(env, request, path);
+
         } catch (err) {
+
             if (isDevelopment(env)) {
                 console.error(err);
             }
