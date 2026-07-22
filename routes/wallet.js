@@ -21,6 +21,7 @@ import {
     verifyWalletPin,
     enableBiometricWallet,
     getRecoveryPhrase,
+    createRecoveryPhrase,
     verifyRecoveryPhrase,
     exportWallet,
     importWallet,
@@ -59,7 +60,7 @@ export async function walletRoute(env, request, path) {
                     if (!checkRateLimit(request, uid)) {
                         return error(env, "Too many requests.", 429);
                     }
-                    return walletCreate(env, uid);
+                    return walletCreate(request, env, uid);
                 }
                 break;
 
@@ -101,7 +102,7 @@ export async function walletRoute(env, request, path) {
 
             case "/wallet/recovery":
                 if (method === "GET") {
-                    return walletRecovery(env, uid);
+                    return walletRecovery(env);
                 }
                 break;
 
@@ -173,12 +174,22 @@ async function walletSync(env, uid) {
    POST /wallet/create
 ========================================================== */
 
-async function walletCreate(env, uid) {
-    let wallet = await getWallet(env, uid);
+async function walletCreate(request, env, uid) {
+    const body = await readJson(request);
+    const recoveryPhrase = Array.isArray(body?.recoveryPhrase)
+        ? body.recoveryPhrase
+        : [];
+    const pin = String(body?.pin || "").trim();
 
-    if (!wallet) {
-        wallet = await createWallet(env, uid);
+    if (!recoveryPhrase.length) {
+        return error(env, "recoveryPhrase is required.", 400);
     }
+
+    if (!pin) {
+        return error(env, "pin is required.", 400);
+    }
+
+    const wallet = await createWallet(env, uid, recoveryPhrase, pin);
 
     return success(env, {
         wallet,
@@ -259,10 +270,11 @@ async function walletBiometric(request, env, uid) {
 
 /* ==========================================================
    GET /wallet/recovery
+   Wizard step: generate a fresh recovery phrase
 ========================================================== */
 
-async function walletRecovery(env, uid) {
-    const phrase = await getRecoveryPhrase(env, uid);
+async function walletRecovery(env) {
+    const phrase = createRecoveryPhrase();
 
     return success(env, {
         phrase
@@ -304,11 +316,12 @@ async function walletExport(env, uid) {
 async function walletImport(request, env, uid) {
     const body = await readJson(request);
     const data = body?.wallet || body?.data || body || {};
-const exists = await getWallet(env, uid);
+    const exists = await getWallet(env, uid);
 
-if (exists) {
-    return error(env, "Wallet already exists.", 409);
-}
+    if (exists) {
+        return error(env, "Wallet already exists.", 409);
+    }
+
     const wallet = await importWallet(env, uid, data);
 
     return success(env, {
