@@ -45,7 +45,7 @@ export function defaultMiningData() {
         stats: {
     totalSession: 0,
     totalStart: 0,
-    claimCount: 0,
+    totalClaimed: 0,
     firstStarted: false
 },
         time: {

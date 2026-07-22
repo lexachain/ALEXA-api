@@ -125,20 +125,21 @@ function generateRecoveryPhrase(wordCount = 12) {
     return phrase;
 }
 
+export function createRecoveryPhrase() {
+    return generateRecoveryPhrase(12);
+}
+
 async function generateWalletAddress(env) {
-
     while (true) {
-
         const bytes = crypto.getRandomValues(new Uint8Array(12));
 
         const hex = Array.from(bytes)
-            .map(b => b.toString(16).padStart(2, "0"))
+            .map((b) => b.toString(16).padStart(2, "0"))
             .join("")
             .toUpperCase()
             .slice(0, 23);
 
         const address = WALLET_PREFIX + hex;
-
         const exists = await getDocument(env, `walletAddress/${address}`);
 
         if (!exists) {
@@ -165,68 +166,88 @@ function hashPin(pin) {
 
 function validatePin(pin) {
     const value = String(pin || "").trim();
+
     if (!/^\d{6}$/.test(value)) {
         throw new Error("PIN must be 6 digits.");
     }
+
     if (/^(\d)\1{5}$/.test(value)) {
         throw new Error("PIN cannot be repeated digits.");
     }
+
     if (value === "123456" || value === "654321" || value === "000000") {
         throw new Error("PIN is too weak.");
     }
+
     return value;
+}
+
+function validateRecoveryPhrase(recoveryPhrase) {
+    if (!Array.isArray(recoveryPhrase) || recoveryPhrase.length !== 12) {
+        throw new Error("Invalid recovery phrase.");
+    }
+
+    const cleaned = recoveryPhrase.map((word) => sanitizeWord(word));
+    if (cleaned.some((word) => !word)) {
+        throw new Error("Invalid recovery phrase.");
+    }
+
+    return cleaned;
 }
 
 /* ==========================================================
    CREATE
 ========================================================== */
 
-export async function createWallet(env, uid) {
+export async function createWallet(env, uid, recoveryPhrase, pin) {
     if (!uid) {
         throw new Error("Missing uid.");
     }
 
-    const exists = await getWalletDoc(env, uid);
+    const exists = await getWalletDoc(env, uid).catch(() => null);
     if (exists) {
         return normalizeWallet(exists);
     }
 
+    const normalizedPin = validatePin(pin);
+    const normalizedPhrase = validateRecoveryPhrase(recoveryPhrase);
+
     const now = getNow();
     const { privateKey, publicKey } = await generateKeyPair();
     const address = await generateWalletAddress(env);
-    const recoveryPhrase = generateRecoveryPhrase(12);
 
     const wallet = {
         ...defaultWalletData(),
         uid,
         address,
         publicKey,
-        encryptedPrivateKey: await encryptPrivateKey(privateKey, "pending"),
-        pinHash: "",
-        pinCreatedAt: null,
+        encryptedPrivateKey: await encryptPrivateKey(privateKey, normalizedPin),
+        pinHash: await hashPin(normalizedPin),
+        pinCreatedAt: now,
         status: "active",
         chain: WALLET_CHAIN,
         lexa: 0,
         usdt: 0,
         security: {
-            pinEnabled: false,
+            pinEnabled: true,
             biometricEnabled: false,
-            recoveryVerified: false
+            recoveryVerified: true
         },
         recovery: {
-            phrase: recoveryPhrase,
-            verified: false,
-            masked: false
+            phrase: normalizedPhrase,
+            verified: true,
+            masked: true
         },
         createdAt: now,
         updatedAt: now
     };
 
     await setWalletDoc(env, uid, wallet);
-await setDocument(env, `walletAddress/${address}`, {
-    uid,
-    createdAt: now
-});
+    await setDocument(env, `walletAddress/${address}`, {
+        uid,
+        createdAt: now
+    });
+
     await appendHistory(env, uid, {
         type: "wallet",
         title: "Wallet Created",

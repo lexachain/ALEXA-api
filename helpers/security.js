@@ -6,6 +6,7 @@
 
 import { verifyFirebaseIdToken } from "./auth.js";
 import { getNow } from "./request.js";
+import { findUserByFirebaseUid } from "./user.js";
 
 /* ==========================================================
    BEARER TOKEN
@@ -28,16 +29,28 @@ export async function requireUser(env, request) {
         throw new Error("Missing Authorization Bearer token.");
     }
 
-    const user = await verifyFirebaseIdToken(env, token);
+    const firebaseUser = await verifyFirebaseIdToken(env, token);
+    const firebaseUid = firebaseUser?.uid;
 
-    if (!user?.uid) {
+    if (!firebaseUid) {
         throw new Error("Unauthorized user.");
     }
 
-    return user;
-}
-export async function requireOwner(env, request, uid) {
+    const alexaUser = await findUserByFirebaseUid(env, firebaseUid);
 
+    if (!alexaUser?.uid) {
+        throw new Error("User profile not found.");
+    }
+
+    return {
+        ...firebaseUser,
+        ...alexaUser,
+        uid: alexaUser.uid,
+        firebaseUid
+    };
+}
+
+export async function requireOwner(env, request, uid) {
     const user = await requireUser(env, request);
 
     if (user.uid !== uid) {
@@ -45,8 +58,8 @@ export async function requireOwner(env, request, uid) {
     }
 
     return user;
-
 }
+
 /* ==========================================================
    RATE LIMIT
 ========================================================== */
@@ -87,7 +100,6 @@ export function checkRateLimit(request, uid = "") {
     rateMap.set(key, current);
     return true;
 }
-
 
 /* ==========================================================
    VALIDATION

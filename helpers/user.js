@@ -10,7 +10,8 @@
 
 import {
     getDocument,
-    setDocument
+    setDocument,
+    runQuery
 } from "./firestore.js";
 
 import {
@@ -58,27 +59,20 @@ export function normalizeUser(doc = {}) {
    DOCUMENT
 ========================================================== */
 
-export async function getUserDoc(env, firebaseUid) {
-    if (!firebaseUid) {
-        throw new Error("Missing firebaseUid.");
+export async function getUserDoc(env, uid) {
+    if (!uid) {
+        throw new Error("Missing uid.");
     }
 
-    return getDocument(
-        env,
-        `users/${firebaseUid}`
-    );
+    return getDocument(env, `users/${uid}`);
 }
 
-export async function setUserDoc(env, firebaseUid, data = {}) {
-    if (!firebaseUid) {
-        throw new Error("Missing firebaseUid.");
+export async function setUserDoc(env, uid, data = {}) {
+    if (!uid) {
+        throw new Error("Missing uid.");
     }
 
-    return setDocument(
-        env,
-        `users/${firebaseUid}`,
-        data
-    );
+    return setDocument(env, `users/${uid}`, data);
 }
 
 /* ==========================================================
@@ -101,27 +95,70 @@ export function generateALEXAUid() {
     return `${UID_PREFIX}${generateRandomDigits(UID_DIGITS)}`;
 }
 
-async function aLexaUidExists(env, aLexaUid) {
-    if (!aLexaUid) return false;
+async function alexaUidExists(env, alexaUid) {
+    if (!alexaUid) return false;
 
-    const users = await getDocument(env, "users").catch(() => null);
-    if (!users) return false;
+    const result = await runQuery(env, {
+        from: [
+            { collectionId: "users" }
+        ],
+        where: {
+            fieldFilter: {
+                field: { fieldPath: "uid" },
+                op: "EQUAL",
+                value: { stringValue: alexaUid }
+            }
+        },
+        limit: 1
+    });
 
-    const values = Array.isArray(users)
-        ? users
-        : Object.values(users || {});
-
-    return values.some((item) => item?.uid === aLexaUid);
+    return Array.isArray(result) && result.length > 0;
 }
 
 export async function generateUniqueALEXAUid(env) {
     for (let i = 0; i < UID_MAX_ATTEMPTS; i++) {
         const candidate = generateALEXAUid();
-        const exists = await aLexaUidExists(env, candidate);
+        const exists = await alexaUidExists(env, candidate);
         if (!exists) return candidate;
     }
 
     throw new Error("Failed to generate a unique ALEXA UID.");
+}
+
+/* ==========================================================
+   SEARCH BY FIREBASE UID
+========================================================== */
+
+export async function findUserByFirebaseUid(env, firebaseUid) {
+    if (!firebaseUid) {
+        throw new Error("firebaseUid is required.");
+    }
+
+    const result = await runQuery(env, {
+        from: [
+            { collectionId: "users" }
+        ],
+        where: {
+            fieldFilter: {
+                field: { fieldPath: "firebaseUid" },
+                op: "EQUAL",
+                value: { stringValue: firebaseUid }
+            }
+        },
+        limit: 1
+    });
+
+    const found = Array.isArray(result) ? result[0] : null;
+    return found ? normalizeUser(found) : null;
+}
+
+export async function findUserByUid(env, uid) {
+    if (!uid) {
+        throw new Error("uid is required.");
+    }
+
+    const doc = await getUserDoc(env, uid).catch(() => null);
+    return doc ? normalizeUser(doc) : null;
 }
 
 /* ==========================================================
@@ -151,11 +188,10 @@ export async function createUser(env, authUser, extraData = {}) {
         throw new Error("authUser.uid is required.");
     }
 
-    const existing = await getUserDoc(env, authUser.uid).catch(() => null);
-    if (existing) {
-        const updated = normalizeUser(existing);
+    const existing = await findUserByFirebaseUid(env, authUser.uid);
 
-        await updateLastLogin(env, authUser.uid, extraData);
+    if (existing) {
+        const updated = await updateLastLogin(env, existing.uid, extraData);
 
         return {
             firebaseUid: authUser.uid,
@@ -178,6 +214,7 @@ export async function createUser(env, authUser, extraData = {}) {
 
         provider:
             authUser.providerData?.[0]?.providerId ||
+            extraData.provider ||
             "google",
 
         status: "active",
@@ -188,7 +225,7 @@ export async function createUser(env, authUser, extraData = {}) {
         lastLogin: now
     });
 
-    await setUserDoc(env, authUser.uid, user);
+    await setUserDoc(env, alexaUid, user);
 
     return {
         firebaseUid: authUser.uid,
@@ -201,44 +238,51 @@ export async function createUser(env, authUser, extraData = {}) {
    UPDATE
 ========================================================== */
 
-export async function updateUser(env, firebaseUid, data = {}) {
-    if (!firebaseUid) throw new Error("firebaseUid is required.");
+export async function updateUser(env, uid, data = {}) {
+    if (!uid) {
+        throw new Error("uid is required.");
+    }
+
     if (!data || typeof data !== "object") {
         throw new Error("data object is required.");
     }
 
     const current = normalizeUser(
-        await getUserDoc(env, firebaseUid)
+        await getUserDoc(env, uid).catch(() => null)
     );
 
     const updated = {
         ...current,
         ...data,
-        firebaseUid,
+        uid,
         updatedAt: getNow()
     };
 
-    await setUserDoc(env, firebaseUid, updated);
+    await setUserDoc(env, uid, updated);
     return updated;
 }
 
-export async function updateAvatar(env, firebaseUid, avatarUrl) {
-    if (!avatarUrl) throw new Error("avatarUrl is required.");
+export async function updateAvatar(env, uid, avatarUrl) {
+    if (!avatarUrl) {
+        throw new Error("avatarUrl is required.");
+    }
 
-    return updateUser(env, firebaseUid, {
+    return updateUser(env, uid, {
         avatar: avatarUrl
     });
 }
 
-export async function updateUsername(env, firebaseUid, username) {
-    if (!username) throw new Error("username is required.");
+export async function updateUsername(env, uid, username) {
+    if (!username) {
+        throw new Error("username is required.");
+    }
 
-    return updateUser(env, firebaseUid, {
+    return updateUser(env, uid, {
         username: username.trim()
     });
 }
 
-export async function updateProfile(env, firebaseUid, profile = {}) {
+export async function updateProfile(env, uid, profile = {}) {
     const allowed = {
         username: profile.username,
         displayName: profile.displayName,
@@ -250,15 +294,15 @@ export async function updateProfile(env, firebaseUid, profile = {}) {
         if (allowed[key] === undefined) delete allowed[key];
     });
 
-    return updateUser(env, firebaseUid, allowed);
+    return updateUser(env, uid, allowed);
 }
 
-export async function updateLastLogin(env, firebaseUid, extraData = {}) {
-    if (!firebaseUid) {
-        throw new Error("firebaseUid is required.");
+export async function updateLastLogin(env, uid, extraData = {}) {
+    if (!uid) {
+        throw new Error("uid is required.");
     }
 
-    return updateUser(env, firebaseUid, {
+    return updateUser(env, uid, {
         lastLogin: getNow(),
         status: extraData.status ?? "active",
         avatar: extraData.avatar ?? "",
@@ -266,10 +310,12 @@ export async function updateLastLogin(env, firebaseUid, extraData = {}) {
     });
 }
 
-export async function updateUserStatus(env, firebaseUid, status = "active") {
-    if (!firebaseUid) throw new Error("firebaseUid is required.");
+export async function updateUserStatus(env, uid, status = "active") {
+    if (!uid) {
+        throw new Error("uid is required.");
+    }
 
-    return updateUser(env, firebaseUid, {
+    return updateUser(env, uid, {
         status
     });
 }
@@ -278,67 +324,73 @@ export async function updateUserStatus(env, firebaseUid, status = "active") {
    DELETE
 ========================================================== */
 
-export async function deleteUser(env, firebaseUid) {
-    if (!firebaseUid) throw new Error("firebaseUid is required.");
+export async function deleteUser(env, uid) {
+    if (!uid) {
+        throw new Error("uid is required.");
+    }
 
-    return setDocument(env, `users/${firebaseUid}`, null);
+    return setDocument(env, `users/${uid}`, null);
 }
 
 /* ==========================================================
    SEARCH
 ========================================================== */
 
-export async function getUser(env, firebaseUid) {
-    const doc = await getUserDoc(env, firebaseUid).catch(() => null);
+export async function getUser(env, uid) {
+    const doc = await getUserDoc(env, uid).catch(() => null);
     return doc ? normalizeUser(doc) : null;
 }
 
-export async function userExists(env, firebaseUid) {
-    if (!firebaseUid) return false;
+export async function userExists(env, uid) {
+    if (!uid) return false;
 
-    const doc = await getUserDoc(env, firebaseUid).catch(() => null);
+    const doc = await getUserDoc(env, uid).catch(() => null);
     return Boolean(doc);
 }
 
-export async function getUserByALEXAUid(env, aLexaUid) {
-    if (!aLexaUid) throw new Error("aLexaUid is required.");
-
-    const users = await getDocument(env, "users").catch(() => null);
-    if (!users) return null;
-
-    const values = Array.isArray(users)
-        ? users
-        : Object.values(users || {});
-
-    const found = values.find((item) => item?.uid === aLexaUid);
-    return found ? normalizeUser(found) : null;
-}
-
 export async function findUserByUsername(env, username) {
-    if (!username) throw new Error("username is required.");
+    if (!username) {
+        throw new Error("username is required.");
+    }
 
-    const users = await getDocument(env, "users").catch(() => null);
-    if (!users) return null;
+    const result = await runQuery(env, {
+        from: [
+            { collectionId: "users" }
+        ],
+        where: {
+            fieldFilter: {
+                field: { fieldPath: "username" },
+                op: "EQUAL",
+                value: { stringValue: username }
+            }
+        },
+        limit: 1
+    });
 
-    const values = Array.isArray(users)
-        ? users
-        : Object.values(users || {});
-
-    const found = values.find((item) => item?.username === username);
+    const found = Array.isArray(result) ? result[0] : null;
     return found ? normalizeUser(found) : null;
 }
 
 export async function findUserByEmail(env, email) {
-    if (!email) throw new Error("email is required.");
+    if (!email) {
+        throw new Error("email is required.");
+    }
 
-    const users = await getDocument(env, "users").catch(() => null);
-    if (!users) return null;
+    const result = await runQuery(env, {
+        from: [
+            { collectionId: "users" }
+        ],
+        where: {
+            fieldFilter: {
+                field: { fieldPath: "email" },
+                op: "EQUAL",
+                value: { stringValue: email }
+            }
+        },
+        limit: 1
+    });
 
-    const values = Array.isArray(users)
-        ? users
-        : Object.values(users || {});
-
-    const found = values.find((item) => item?.email === email);
+    const found = Array.isArray(result) ? result[0] : null;
     return found ? normalizeUser(found) : null;
 }
 
@@ -351,7 +403,11 @@ export function buildInitialUserPayload(authUser, extraData = {}) {
         firebaseUid: authUser?.uid || "",
         uid: "",
 
-        provider: authUser?.providerData?.[0]?.providerId || extraData.provider || "google",
+        provider:
+            authUser?.providerData?.[0]?.providerId ||
+            extraData.provider ||
+            "google",
+
         username: extraData.username || buildUsername(authUser),
         displayName: extraData.displayName || buildDisplayName(authUser),
         email: authUser?.email || "",
