@@ -15,6 +15,7 @@ import { authRoute } from "./routes/auth.js";
 import { miningRoute } from "./routes/mining.js";
 import { referralRoute } from "./routes/referral.js";
 import { walletRoute } from "./routes/wallet.js";
+import { userRoute } from "./routes/user.js";
 
 /* ==========================================================
    ROUTE MAP
@@ -25,6 +26,20 @@ const ROUTES = [
     { method: "GET", path: "/server/time", handler: handleServerTime },
 
     { method: "POST", path: "/auth/login", handler: authRoute },
+
+    { method: "GET", path: "/user/sync", handler: userRoute },
+    { method: "POST", path: "/user/sync", handler: userRoute },
+    { method: "GET", path: "/user/profile", handler: userRoute },
+    { method: "POST", path: "/user/profile", handler: userRoute },
+    { method: "PUT", path: "/user/profile", handler: userRoute },
+    { method: "POST", path: "/user/avatar", handler: userRoute },
+    { method: "POST", path: "/user/username", handler: userRoute },
+    { method: "POST", path: "/user/status", handler: userRoute },
+    { method: "POST", path: "/user/delete", handler: userRoute },
+    { method: "DELETE", path: "/user/delete", handler: userRoute },
+    { method: "GET", path: "/user/check", handler: userRoute },
+    { method: "GET", path: "/user/search/username", handler: userRoute },
+    { method: "GET", path: "/user/search/email", handler: userRoute },
 
     { method: "GET", path: "/wallet", handler: walletRoute },
     { method: "POST", path: "/wallet", handler: walletRoute },
@@ -84,8 +99,6 @@ function resolveRoute(method, path) {
 export default {
     async fetch(request, env) {
         try {
-
-            // Simpan origin request
             env.REQUEST_ORIGIN = request.headers.get("Origin") || "";
 
             if (request.method === "OPTIONS") {
@@ -109,9 +122,7 @@ export default {
             }
 
             return await route.handler(env, request, path);
-
         } catch (err) {
-
             if (isDevelopment(env)) {
                 console.error(err);
             }
