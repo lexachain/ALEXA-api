@@ -41,8 +41,16 @@ export async function authRoute(env, request) {
         }
 
         const body = await readJson(request);
-        const idToken = String(body?.idToken || "").trim();
-        const inviterUid = String(body?.inviterUid || body?.ref || "").trim();
+
+const authHeader = request.headers.get("Authorization") || "";
+
+const idToken = authHeader.startsWith("Bearer ")
+    ? authHeader.slice(7).trim()
+    : "";
+
+const inviterUid = String(
+    body?.inviterUid || body?.ref || ""
+).trim();
 
         if (!idToken) {
             return error(env, "Missing idToken.", 400);
