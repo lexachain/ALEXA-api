@@ -25,7 +25,7 @@ const ROUTES = [
     { method: "GET", path: "/server/ping", handler: handleServerPing },
     { method: "GET", path: "/server/time", handler: handleServerTime },
 
-    { method: "POST", path: "/auth/login", handler: authRoute },
+    { method: "POST", path: "/auth", handler: authRoute },
 
     { method: "GET", path: "/user/sync", handler: userRoute },
     { method: "POST", path: "/user/sync", handler: userRoute },
