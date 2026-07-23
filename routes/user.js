@@ -27,7 +27,7 @@ import {
     findUserByFirebaseUid,
     buildInitialUserPayload
 } from "../helpers/user.js";
-
+import { deleteAccount } from "../helpers/delete.js";
 /* ==========================================================
    ROUTE
 ========================================================== */
@@ -304,8 +304,7 @@ const profile = await getUser(env, uid);
         return error(env, "User not found.", 404);
     }
 
-    await deleteUser(env, profile.uid);
-
+    await deleteAccount(env, profile.uid);
     return success(env, {
         deleted: true
     });
