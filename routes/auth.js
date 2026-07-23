@@ -15,7 +15,8 @@ import { verifyFirebaseIdToken } from "../helpers/auth.js";
 import {
     getUser,
     createUser,
-    updateUser
+    updateUser, 
+findUserByFirebaseUid
 } from "../helpers/user.js";
 
 import {
@@ -63,7 +64,7 @@ const inviterUid = String(
             return error(env, "Unauthorized user.", 401);
         }
 
-        let user = await getUser(env, uid);
+        let user = await findUserByFirebaseUid(env, uid);
         const isNewUser = !user || !user.uid;
 
         if (isNewUser) {
@@ -74,21 +75,21 @@ const inviterUid = String(
                 picture: firebaseUser.picture || "",
                 emailVerified: firebaseUser.emailVerified
             });
-
-            await createReferral(env, uid);
+const alexaUid = user.uid;
+            await createReferral(env, alexaUid);
 
             const miningData = defaultMiningData();
-            miningData.uid = uid;
+            miningData.uid = alexaUid;
             miningData.createdAt = Date.now();
             miningData.updatedAt = Date.now();
 
-            await setMiningDoc(env, uid, miningData);
+            await setMiningDoc(env, alexaUid, miningData);
 
-            if (inviterUid && inviterUid !== uid) {
-                await applyReferral(env, uid, inviterUid);
+if (inviterUid && inviterUid !== alexaUid) {
+    await applyReferral(env, alexaUid, inviterUid);
             }
         } else {
-            await updateUser(env, uid, {
+            await updateUser(env, user.uid, {
                 email: firebaseUser.email || user.email || "",
                 displayName:
                     firebaseUser.name ||
@@ -106,9 +107,9 @@ const inviterUid = String(
             });
         }
 
-        const latestUser = await getUser(env, uid);
-        const mining = await getMiningState(env, uid).catch(() => null);
-        const referral = await getReferralDoc(env, uid).catch(() => null);
+        const latestUser = await getUser(env, user.uid);
+const mining = await getMiningState(env, user.uid).catch(() => null);
+const referral = await getReferralDoc(env, user.uid).catch(() => null);
 
         return success(env, {
             isNewUser,
