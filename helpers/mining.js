@@ -6,7 +6,8 @@
 
 import {
     getDocument,
-    setDocument
+    setDocument,
+    deleteDocument
 } from "./firestore.js";
 
 import {
@@ -259,7 +260,11 @@ export async function syncMining(env, uid) {
         nextClaim: statusInfo.nextClaim
     };
 }
+export async function deleteMining(env, uid) {
 
+    return deleteDocument(env, `mining/${uid}`);
+
+}
 export async function claimMining(env, uid) {
     if (!uid) {
         throw new Error("Missing uid.");

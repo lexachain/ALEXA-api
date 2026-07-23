@@ -8,7 +8,11 @@
    IMPORT
 ========================================================== */
 
-import { getDocument, setDocument } from "./firestore.js";
+import {
+    getDocument,
+    setDocument,
+    deleteDocument
+} from "./firestore.js";
 import { getNow } from "./request.js";
 import { sha256 } from "./security.js";
 import { appendHistory } from "./history.js";
@@ -566,7 +570,11 @@ export async function importWallet(env, uid, data = {}) {
     await setWalletDoc(env, uid, wallet);
     return wallet;
 }
+export async function deleteWallet(env, uid) {
 
+    return deleteDocument(env, `wallets/${uid}`);
+
+}
 /* ==========================================================
    META
 ========================================================== */

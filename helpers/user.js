@@ -11,6 +11,7 @@
 import {
     getDocument,
     setDocument,
+    deleteDocument,
     runQuery
 } from "./firestore.js";
 
@@ -325,11 +326,13 @@ export async function updateUserStatus(env, uid, status = "active") {
 ========================================================== */
 
 export async function deleteUser(env, uid) {
+
     if (!uid) {
         throw new Error("uid is required.");
     }
 
-    return setDocument(env, `users/${uid}`, null);
+    return deleteDocument(env, `users/${uid}`);
+
 }
 
 /* ==========================================================
@@ -421,3 +424,4 @@ export function buildInitialUserPayload(authUser, extraData = {}) {
         lastLogin: null
     };
 }
+

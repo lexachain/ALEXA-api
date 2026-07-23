@@ -11,7 +11,8 @@
 import {
     getDocument,
     setDocument,
-    runQuery
+    runQuery,
+    deleteDocument
 } from "./firestore.js";
 
 import {
@@ -333,7 +334,11 @@ export async function getReferralHistory(
     });
 
 }
+export async function deleteReferral(env, uid) {
 
+    return deleteDocument(env, `referrals/${uid}`);
+
+}
 /* ==========================================================
    LEADERBOARD
 ========================================================== */
