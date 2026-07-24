@@ -3,7 +3,7 @@
    File : helpers/delete.js
 ========================================================== */
 
-import { deleteUser } from "./users.js";
+import { deleteUser } from "./user.js";
 import { deleteWallet } from "./wallet.js";
 import { deleteMining } from "./mining.js";
 import { deleteReferral } from "./referral.js";
