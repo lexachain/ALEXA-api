@@ -1,7 +1,7 @@
 /* ==========================================================
    ALEXA API
    File : routes/wallet.js
-   Description : Wallet Routes
+   Description : Wallet Routes v2 Final
 ========================================================== */
 
 /* ==========================================================
@@ -16,7 +16,6 @@ import {
     getWallet,
     createWallet,
     updateWallet,
-    walletExists,
     setWalletPin,
     verifyWalletPin,
     enableBiometricWallet,
@@ -25,7 +24,13 @@ import {
     verifyRecoveryPhrase,
     exportWallet,
     importWallet,
-    getWalletChains
+    getWalletChains,
+    createWalletBackupQR,
+    restoreWalletFromBackupQR, 
+    getWalletPrivateKey,
+    revealRecoveryPhrase,
+    maskRecoveryPhrase,
+    deleteWallet
 } from "../helpers/wallet.js";
 
 import { getHistoryByUid } from "../helpers/history.js";
@@ -37,7 +42,6 @@ import { getHistoryByUid } from "../helpers/history.js";
 export async function walletRoute(env, request, path) {
     try {
         const method = request.method.toUpperCase();
-
         const user = await requireUser(env, request);
         const uid = user?.uid;
 
@@ -130,6 +134,54 @@ export async function walletRoute(env, request, path) {
             case "/wallet/history":
                 if (method === "GET") {
                     return walletHistory(env, uid);
+                }
+                break;
+
+            case "/wallet/backup/create":
+                if (method === "POST") {
+                    if (!checkRateLimit(request, uid)) {
+                        return error(env, "Too many requests.", 429);
+                    }
+                    return walletBackupCreate(request, env, uid);
+                }
+                break;
+
+case "/wallet/recovery/show":
+    if (method === "POST") {
+        return walletRecoveryShow(request, env, uid);
+    }
+    break;
+
+case "/wallet/recovery/reveal":
+    if (method === "POST") {
+        return walletRecoveryReveal(env, uid);
+    }
+    break;
+
+case "/wallet/recovery/mask":
+    if (method === "POST") {
+        return walletRecoveryMask(env, uid);
+    }
+    break;
+
+case "/wallet/private-key":
+    if (method === "POST") {
+        return walletPrivateKey(request, env, uid);
+    }
+    break;
+
+case "/wallet/delete":
+    if (method === "DELETE") {
+        return walletDelete(env, uid);
+    }
+    break;
+
+            case "/wallet/backup/restore":
+                if (method === "POST") {
+                    if (!checkRateLimit(request, uid)) {
+                        return error(env, "Too many requests.", 429);
+                    }
+                    return walletBackupRestore(request, env, uid);
                 }
                 break;
 
@@ -230,6 +282,10 @@ async function walletSetPin(request, env, uid) {
     const body = await readJson(request);
     const pin = String(body?.pin || "").trim();
 
+    if (!pin) {
+        return error(env, "pin is required.", 400);
+    }
+
     const wallet = await setWalletPin(env, uid, pin);
 
     return success(env, {
@@ -245,6 +301,10 @@ async function walletSetPin(request, env, uid) {
 async function walletVerifyPin(request, env, uid) {
     const body = await readJson(request);
     const pin = String(body?.pin || "").trim();
+
+    if (!pin) {
+        return error(env, "pin is required.", 400);
+    }
 
     const verified = await verifyWalletPin(env, uid, pin);
 
@@ -270,14 +330,15 @@ async function walletBiometric(request, env, uid) {
 
 /* ==========================================================
    GET /wallet/recovery
-   Wizard step: generate a fresh recovery phrase
+   Generate fresh 12-word recovery phrase
 ========================================================== */
 
 async function walletRecovery(env) {
-    const phrase = createRecoveryPhrase();
+    const result = await createRecoveryPhrase();
 
     return success(env, {
-        phrase
+        phrase: result.phrase,
+        meta: result.meta
     });
 }
 
@@ -287,7 +348,11 @@ async function walletRecovery(env) {
 
 async function walletVerifyRecovery(request, env, uid) {
     const body = await readJson(request);
-    const phrase = body?.phrase || [];
+    const phrase = Array.isArray(body?.phrase) ? body.phrase : [];
+
+    if (!phrase.length) {
+        return error(env, "phrase is required.", 400);
+    }
 
     const wallet = await verifyRecoveryPhrase(env, uid, phrase);
 
@@ -296,6 +361,61 @@ async function walletVerifyRecovery(request, env, uid) {
         verified: true
     });
 }
+
+async function walletRecoveryShow(request, env, uid) {
+    const body = await readJson(request);
+    const pin = String(body?.pin || "").trim();
+
+    if (!pin) {
+        return error(env, "pin is required.", 400);
+    }
+
+    const phrase = await getRecoveryPhrase(env, uid, pin);
+
+    return success(env, {
+        phrase
+    });
+}
+async function walletRecoveryReveal(env, uid) {
+    const wallet = await revealRecoveryPhrase(env, uid);
+
+    return success(env, {
+        wallet
+    });
+}
+async function walletRecoveryMask(env, uid) {
+    const wallet = await maskRecoveryPhrase(env, uid);
+
+    return success(env, {
+        wallet
+    });
+}
+async function walletPrivateKey(request, env, uid) {
+    const body = await readJson(request);
+    const pin = String(body?.pin || "").trim();
+
+    if (!pin) {
+        return error(env, "pin is required.", 400);
+    }
+
+    const privateKey = await getWalletPrivateKey(
+        env,
+        uid,
+        pin
+    );
+
+    return success(env, {
+        privateKey
+    });
+}
+async function walletDelete(env, uid) {
+    await deleteWallet(env, uid);
+
+    return success(env, {
+        deleted: true
+    });
+}
+
 
 /* ==========================================================
    GET /wallet/export
@@ -311,13 +431,17 @@ async function walletExport(env, uid) {
 
 /* ==========================================================
    POST /wallet/import
+   Supports:
+   - legacy wallet object
+   - recovery phrase flow
+   - backup QR flow
 ========================================================== */
 
 async function walletImport(request, env, uid) {
     const body = await readJson(request);
     const data = body?.wallet || body?.data || body || {};
-    const exists = await getWallet(env, uid);
 
+    const exists = await getWallet(env, uid);
     if (exists) {
         return error(env, "Wallet already exists.", 409);
     }
@@ -339,5 +463,50 @@ async function walletHistory(env, uid) {
 
     return success(env, {
         history
+    });
+}
+
+/* ==========================================================
+   POST /wallet/backup/create
+========================================================== */
+
+async function walletBackupCreate(request, env, uid) {
+    const body = await readJson(request);
+    const pin = String(body?.pin || "").trim();
+
+    if (!pin) {
+        return error(env, "pin is required.", 400);
+    }
+
+    const wallet = await createWalletBackupQR(env, uid, pin);
+
+    return success(env, {
+        wallet,
+        backupCreated: true
+    });
+}
+
+/* ==========================================================
+   POST /wallet/backup/restore
+========================================================== */
+
+async function walletBackupRestore(request, env, uid) {
+    const body = await readJson(request);
+    const qr = String(body?.qr || "").trim();
+    const pin = String(body?.pin || "").trim();
+
+    if (!qr) {
+        return error(env, "qr is required.", 400);
+    }
+
+    if (!pin) {
+        return error(env, "pin is required.", 400);
+    }
+
+    const wallet = await restoreWalletFromBackupQR(env, uid, qr, pin);
+
+    return success(env, {
+        wallet,
+        restored: true
     });
 }
