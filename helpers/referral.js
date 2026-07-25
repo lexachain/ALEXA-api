@@ -348,18 +348,60 @@ export async function getReferralLeaderboard(
     limit = 100
 ) {
 
-    return runQuery(env, {
-
+    const referrals = await runQuery(env, {
         from: [
-
             {
                 collectionId: "referrals"
             }
-
-        ],
-
-        limit
-
+        ]
     });
+
+    const counter = new Map();
+
+    for (const item of referrals) {
+
+        if (!item.referredBy) continue;
+
+        counter.set(
+            item.referredBy,
+            (counter.get(item.referredBy) || 0) + 1
+        );
+
+    }
+
+    const leaderboard = [];
+
+    for (const [uid, referralCount] of counter.entries()) {
+
+        const user =
+            await getDocument(
+                env,
+                `users/${uid}`
+            );
+
+        leaderboard.push({
+
+            uid,
+
+            username:
+                user?.username ||
+                user?.displayName ||
+                "User",
+
+            avatar:
+                user?.avatar ||
+                "assets/avatar/default.png",
+
+            referralCount
+
+        });
+
+    }
+
+    leaderboard.sort(
+        (a, b) => b.referralCount - a.referralCount
+    );
+
+    return leaderboard.slice(0, limit);
 
 }
