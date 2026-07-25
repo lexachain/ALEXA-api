@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 90" fill="none">
+  <defs>
+    <linearGradient id="baseGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFF9D8"/>
+      <stop offset="14%" stop-color="#F7E9B9"/>
+      <stop offset="34%" stop-color="#E8C86A"/>
+      <stop offset="54%" stop-color="#D4AF37"/>
+      <stop offset="76%" stop-color="#8ED2A8"/>
+      <stop offset="100%" stop-color="#53D9A3"/>
+    </linearGradient>
+
+    <linearGradient id="topSheen" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.92"/>
+      <stop offset="28%" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="58%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </linearGradient>
+
+    <linearGradient id="bottomShade" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#000000" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.20"/>
+    </linearGradient>
+
+    <linearGradient id="edgeGlow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FFF8D8" stop-opacity="0.95"/>
+      <stop offset="48%" stop-color="#D4AF37" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#53D9A3" stop-opacity="0.92"/>
+    </linearGradient>
+
+    <radialGradient id="leftBloom" cx="18%" cy="22%" r="80%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.28"/>
+      <stop offset="45%" stop-color="#FFFFFF" stop-opacity="0.08"/>
+      <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+
+    <filter id="outerGlow" x="-18%" y="-24%" width="136%" height="160%" color-interpolation-filters="sRGB">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="4.5" result="blurGold"/>
+      <feColorMatrix in="blurGold" type="matrix"
+        values="1 0 0 0 0.83
+                0 1 0 0 0.69
+                0 0 1 0 0.22
+                0 0 0 0.55 0" result="goldGlow"/>
+      <feGaussianBlur in="SourceAlpha" stdDeviation="6.5" result="blurEmerald"/>
+      <feColorMatrix in="blurEmerald" type="matrix"
+        values="0 0 0 0 0.33
+                0 1 0 0 0.85
+                0 0 1 0 0.64
+                0 0 0 0.22 0" result="emeraldGlow"/>
+      <feMerge>
+        <feMergeNode in="goldGlow"/>
+        <feMergeNode in="emeraldGlow"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+
+    <filter id="innerShadow" x="-12%" y="-12%" width="124%" height="124%" color-interpolation-filters="sRGB">
+      <feOffset dy="1.2"/>
+      <feGaussianBlur stdDeviation="1.8" result="shadowBlur"/>
+      <feComposite in="shadowBlur" in2="SourceAlpha" operator="arithmetic" k2="-1" k3="1" result="inner"/>
+      <feColorMatrix in="inner" type="matrix"
+        values="0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0 0
+                0 0 0 0.30 0"/>
+    </filter>
+
+    <clipPath id="btnClip">
+      <path d="M56 0H420V26C420 50 401 73 375 81C359 86 344 90 323 90H0V44C0 19 23 0 56 0Z"/>
+    </clipPath>
+  </defs>
+
+  <g filter="url(#outerGlow)">
+    <path d="M56 0H420V26C420 50 401 73 375 81C359 86 344 90 323 90H0V44C0 19 23 0 56 0Z" fill="url(#baseGradient)"/>
+    <path d="M56 0H420V26C420 50 401 73 375 81C359 86 344 90 323 90H0V44C0 19 23 0 56 0Z" fill="none" stroke="url(#edgeGlow)" stroke-width="1.2"/>
+
+    <g clip-path="url(#btnClip)">
+      <rect x="0" y="0" width="420" height="90" fill="url(#leftBloom)" opacity="0.9"/>
+      <path d="M0 0H420V18C362 16 322 8 276 6C220 4 175 15 118 18C77 20 39 12 0 0Z" fill="url(#topSheen)" opacity="0.95"/>
+      <path d="M0 58H420V90H0Z" fill="url(#bottomShade)" opacity="0.95"/>
+
+      <path d="M263 0H420V90H297C334 79 356 58 362 36C366 21 361 9 349 0Z" fill="#FFFFFF" opacity="0.06"/>
+      <path d="M0 0H56C34 8 16 24 12 44C9 61 14 74 24 90H0Z" fill="#FFFFFF" opacity="0.05"/>
+
+      <path d="M0 0H420V7H0Z" fill="#FFFFFF" opacity="0.16"/>
+      <path d="M58 82H338C352 82 364 80 375 76C366 84 354 88 340 90H0V84C16 84 34 84 58 82Z" fill="#000000" opacity="0.10"/>
+      <path d="M34 12H320C338 12 353 10 364 6C351 16 334 20 314 20H48C34 20 24 23 16 30C18 20 24 14 34 12Z" fill="#FFFFFF" opacity="0.10"/>
+    </g>
+
+    <path d="M56 0H420V26C420 50 401 73 375 81C359 86 344 90 323 90H0V44C0 19 23 0 56 0Z" fill="none" stroke="#FFFFFF" stroke-opacity="0.16" stroke-width="1" filter="url(#innerShadow)"/>
+  </g>
+</svg>
