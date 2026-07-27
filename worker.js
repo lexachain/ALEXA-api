@@ -17,7 +17,7 @@ import { referralRoute } from "./routes/referral.js";
 import { walletRoute } from "./routes/wallet.js";
 import { userRoute } from "./routes/user.js";
 import { calendarRoute } from "./routes/calendar.js";
-
+import { historyRoute } from "./routes/history.js";
 /* ==========================================================
    ROUTE MAP
 ========================================================== */
@@ -61,6 +61,7 @@ const ROUTES = [
     { method: "POST", path: "/mining/claim", handler: miningRoute },
     { method: "POST", path: "/mining/state", handler: miningRoute },
 
+{ method: "GET", path: "/activity", handler: historyRoute },
 { method: "GET",  path: "/calendar",        handler: calendarRoute },
 { method: "POST", path: "/checkin/claim",   handler: calendarRoute },
 { method: "POST", path: "/social/claim",    handler: calendarRoute },
