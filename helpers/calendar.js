@@ -330,7 +330,7 @@ export async function claimSocialTask(env, uid, taskId) {
     );
 
     await appendHistory(env, uid, {
-        type: "social",
+        type: "reward",
         title: task.title,
         amount: task.reward,
         token: "LEXA",
@@ -462,7 +462,7 @@ export async function claimDailyCheckin(env, uid) {
     await setCalendarDoc(env, uid, updatedCalendar);
 
     await appendHistory(env, uid, {
-        type: "daily",
+        type: "reward",
         title: "Daily Check-in",
         description: `Day ${currentDay} reward claimed.`,
         amount: reward,
