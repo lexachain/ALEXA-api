@@ -432,7 +432,7 @@ export async function getReferralLeaderboard(
     normalizeMining(
         await getMiningDoc(
             env,
-            `users/${uid}`
+            uid
         )
     );
 
