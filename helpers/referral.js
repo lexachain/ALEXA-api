@@ -50,6 +50,8 @@ export function defaultReferralData() {
 
         rewardClaimed: false,
 
+        rewardAmount: 0,
+
         rewardedAt: null,
 
         createdAt: null,
@@ -244,6 +246,10 @@ export async function rewardReferral(
         Number(mining.pendingLexa || 0) +
         INVITER_REWARD;
 
+mining.referralBonus =
+    Number(mining.referralBonus || 0) +
+    INVITER_REWARD;
+
     await setMiningDoc(
         env,
         inviterUid,
@@ -251,8 +257,9 @@ export async function rewardReferral(
     );
 
     referral.rewardClaimed = true;
-    referral.rewardedAt = getNow();
-    referral.updatedAt = getNow();
+referral.rewardAmount = INVITER_REWARD;
+referral.rewardedAt = getNow();
+referral.updatedAt = getNow();
 
     await setReferralDoc(
         env,
@@ -303,14 +310,12 @@ export async function getReferralHistory(
     inviterUid
 ) {
 
-    return runQuery(env, {
+    const referrals = await runQuery(env, {
 
         from: [
-
             {
                 collectionId: "referrals"
             }
-
         ],
 
         where: {
@@ -333,6 +338,50 @@ export async function getReferralHistory(
 
     });
 
+    const history = [];
+
+    for (const referral of referrals) {
+
+        const uid = referral.uid;
+
+        if (!uid) continue;
+
+        const user =
+            await getDocument(
+                env,
+                `users/${uid}`
+            );
+
+        history.push({
+
+            uid,
+
+            username:
+                user?.username ||
+                user?.displayName ||
+                "User",
+
+            avatar:
+                user?.avatar ||
+                "assets/avatar/default.png",
+
+            joinedAt:
+                referral.createdAt,
+
+            status:
+                referral.rewardClaimed
+                    ? "rewarded"
+                    : "active",
+
+            bonus:
+    Number(referral.rewardAmount || 0)
+
+        });
+
+    }
+
+    return history;
+
 }
 export async function deleteReferral(env, uid) {
 
@@ -345,7 +394,7 @@ export async function deleteReferral(env, uid) {
 
 export async function getReferralLeaderboard(
     env,
-    limit = 100
+    limit = 20
 ) {
 
     const referrals = await runQuery(env, {
@@ -379,28 +428,44 @@ export async function getReferralLeaderboard(
                 `users/${uid}`
             );
 
-        leaderboard.push({
+        const mining =
+    normalizeMining(
+        await getMiningDoc(
+            env,
+            `users/${uid}`
+        )
+    );
 
-            uid,
+leaderboard.push({
 
-            username:
-                user?.username ||
-                user?.displayName ||
-                "User",
+    uid,
 
-            avatar:
-                user?.avatar ||
-                "assets/avatar/default.png",
+    username:
+        user?.username ||
+        user?.displayName ||
+        "User",
 
-            referralCount
+    avatar:
+        user?.avatar ||
+        "assets/avatar/default.png",
 
-        });
+    referralCount,
 
+    referralBonus:
+        Number(mining.referralBonus || 0)
+
+});
     }
 
-    leaderboard.sort(
-        (a, b) => b.referralCount - a.referralCount
-    );
+    leaderboard.sort((a, b) => {
+
+    if (b.referralCount !== a.referralCount) {
+        return b.referralCount - a.referralCount;
+    }
+
+    return b.referralBonus - a.referralBonus;
+
+});
 
     return leaderboard.slice(0, limit);
 
