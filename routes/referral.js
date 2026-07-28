@@ -22,6 +22,10 @@ import {
     getReferralLeaderboard,
     applyReferral
 } from "../helpers/referral.js";
+import {
+    getMiningDoc,
+    normalizeMining
+} from "../helpers/mining.js";
 
 /* ==========================================================
    ROUTE
@@ -101,6 +105,10 @@ async function referralProfile(env, uid) {
     // Ambil profil user dari Firestore
     const user =
         await getDocument(env, `users/${uid}`);
+const mining =
+    normalizeMining(
+        await getMiningDoc(env, uid)
+    );
 
     return success(env, {
         user,
@@ -109,7 +117,8 @@ async function referralProfile(env, uid) {
         invitedMembers: Array.isArray(history)
             ? history.length
             : 0,
-        referralBonus: 0,
+        referralBonus:
+    Number(mining.referralBonus || 0),
         history,
         leaderboard
     });
@@ -162,7 +171,11 @@ async function referralApply(request, env, uid) {
     }
 
     const applied = await applyReferral(env, uid, inviterUid);
-
+console.log({
+    uid,
+    miningBonus: mining.referralBonus,
+    mining
+});
     return success(env, {
         applied
     });
