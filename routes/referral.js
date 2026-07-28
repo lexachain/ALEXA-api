@@ -171,11 +171,7 @@ async function referralApply(request, env, uid) {
     }
 
     const applied = await applyReferral(env, uid, inviterUid);
-console.log({
-    uid,
-    miningBonus: mining.referralBonus,
-    mining
-});
+
     return success(env, {
         applied
     });
