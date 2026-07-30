@@ -15,6 +15,9 @@ import {
     addMs,
     remainingMs
 } from "./request.js";
+import {
+    addPendingLexa
+} from "./pendingLexa.js";
 
 import {
     appendHistory
@@ -41,8 +44,7 @@ export function defaultMiningData() {
         boost: 1,
         multiplier: 1,
         currentReward: 0.7,
-        pendingLexa: 0,
-        totalLexa: 0,
+        referralBonus: 0,
         stats: {
     totalSession: 0,
     totalStart: 0,
@@ -289,8 +291,8 @@ export async function claimMining(env, uid) {
     }
 
     const reward = calculateMiningReward(mining);
-    const pendingLexa = Number(mining.pendingLexa || 0) + reward;
-    const totalLexa = Number(mining.totalLexa || 0) + reward;
+
+await addPendingLexa(env, uid, reward);
 
     await appendHistory(env, uid, {
         type: "mining",
@@ -305,8 +307,6 @@ export async function claimMining(env, uid) {
     const updated = {
         ...mining,
         status: "idle",
-        pendingLexa,
-        totalLexa,
         time: {
             ...mining.time,
             lastClaim: now,
@@ -327,7 +327,6 @@ export async function claimMining(env, uid) {
         status: "idle",
         serverTime: now,
         reward,
-        pendingLexa,
         mining: updated,
         message: "Mining claimed successfully."
     };

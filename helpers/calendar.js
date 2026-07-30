@@ -15,10 +15,8 @@ import {
 } from "./history.js";
 
 import {
-    getMiningDoc,
-    setMiningDoc,
-    normalizeMining
-} from "./mining.js";
+    addPendingLexa
+} from "./pendingLexa.js";
 
 import {
     getNow,
@@ -226,7 +224,6 @@ export async function getCalendarData(env, uid) {
     const calendar = normalizeCalendarData(calendarRaw || {});
 
     const user = await getDocument(env, `users/${uid}`);
-    const mining = normalizeMining(await getMiningDoc(env, uid) || {});
 
     const lastCheckin = toNumber(calendar.daily.lastCheckin || 0);
     const streak = toNumber(calendar.daily.streak || 0);
@@ -297,7 +294,6 @@ const completedTasks =
 }
 export async function claimSocialTask(env, uid, taskId) {
     const user = await getDocument(env, `users/${uid}`);
-    const mining = normalizeMining(await getMiningDoc(env, uid) || {});
 
     user.tasks = user.tasks || {};
 
@@ -317,9 +313,11 @@ export async function claimSocialTask(env, uid, taskId) {
         };
     }
 
-    mining.pendingLexa += task.reward;
-
-    await setMiningDoc(env, uid, mining);
+    await addPendingLexa(
+    env,
+    uid,
+    task.reward
+);
 
     user.tasks[taskId] = true;
 
@@ -345,7 +343,6 @@ export async function claimSocialTask(env, uid, taskId) {
 }
 export async function claimReferralTask(env, uid, taskId) {
     const user = await getDocument(env, `users/${uid}`);
-    const mining = normalizeMining(await getMiningDoc(env, uid) || {});
 
     user.referralClaims = user.referralClaims || [];
 
@@ -377,9 +374,11 @@ export async function claimReferralTask(env, uid, taskId) {
         };
     }
 
-    mining.pendingLexa += task.reward;
-
-    await setMiningDoc(env, uid, mining);
+    await addPendingLexa(
+    env,
+    uid,
+    task.reward
+);
 
     user.referralClaims.push(taskId);
 
@@ -415,7 +414,6 @@ export async function claimDailyCheckin(env, uid) {
 
     const calendarRaw = await getCalendarDoc(env, uid);
     const calendar = normalizeCalendarData(calendarRaw || {});
-    const mining = normalizeMining(await getMiningDoc(env, uid) || {});
 
     const lastCheckin = toNumber(calendar.daily.lastCheckin || 0);
     const elapsed = lastCheckin ? Math.max(0, now - lastCheckin) : Infinity;
@@ -442,10 +440,11 @@ export async function claimDailyCheckin(env, uid) {
     const currentDay = calculateCurrentDayFromStreak(nextStreak);
     const reward = calculateDailyReward(currentDay);
 
-    mining.pendingLexa = toNumber(mining.pendingLexa || 0) + reward;
-    mining.updatedAt = now;
-
-    await setMiningDoc(env, uid, mining);
+    await addPendingLexa(
+    env,
+    uid,
+    reward
+);
 
     const updatedCalendar = {
         ...calendar,

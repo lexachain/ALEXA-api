@@ -20,10 +20,8 @@ import {
 } from "./history.js";
 
 import {
-    getMiningDoc,
-    setMiningDoc,
-    normalizeMining
-} from "./mining.js";
+    addPendingLexa
+} from "./pendingLexa.js";
 
 import {
     getNow
@@ -177,20 +175,11 @@ export async function applyReferral(
         referral
     );
 
-    const mining =
-        normalizeMining(
-            await getMiningDoc(env, uid)
-        );
-
-    mining.pendingLexa =
-        Number(mining.pendingLexa || 0) +
-        INVITEE_REWARD;
-
-    await setMiningDoc(
-        env,
-        uid,
-        mining
-    );
+    await addPendingLexa(
+    env,
+    uid,
+    INVITEE_REWARD
+);
 
     await appendHistory(
         env,
@@ -234,28 +223,11 @@ export async function rewardReferral(
     const inviterUid =
         referral.referredBy;
 
-    const mining =
-        normalizeMining(
-            await getMiningDoc(
-                env,
-                inviterUid
-            )
-        );
-
-    mining.pendingLexa =
-        Number(mining.pendingLexa || 0) +
-        INVITER_REWARD;
-
-mining.referralBonus =
-    Number(mining.referralBonus || 0) +
-    INVITER_REWARD;
-
-    await setMiningDoc(
-        env,
-        inviterUid,
-        mining
-    );
-
+    await addPendingLexa(
+    env,
+    inviterUid,
+    INVITER_REWARD
+);
     referral.rewardClaimed = true;
 referral.rewardAmount = INVITER_REWARD;
 referral.rewardedAt = getNow();
@@ -428,15 +400,7 @@ export async function getReferralLeaderboard(
                 `users/${uid}`
             );
 
-        const mining =
-    normalizeMining(
-        await getMiningDoc(
-            env,
-            uid
-        )
-    );
-
-leaderboard.push({
+        leaderboard.push({
 
     uid,
 
@@ -449,23 +413,16 @@ leaderboard.push({
         user?.avatar ||
         "assets/avatar/default.png",
 
-    referralCount,
-
-    referralBonus:
-        Number(mining.referralBonus || 0)
+    referralCount
 
 });
+
     }
 
-    leaderboard.sort((a, b) => {
-
-    if (b.referralCount !== a.referralCount) {
-        return b.referralCount - a.referralCount;
-    }
-
-    return b.referralBonus - a.referralBonus;
-
-});
+    leaderboard.sort(
+    (a, b) =>
+        b.referralCount - a.referralCount
+);
 
     return leaderboard.slice(0, limit);
 

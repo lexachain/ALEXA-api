@@ -7,6 +7,11 @@
 import { getDocument, setDocument } from "./firestore.js";
 import { getNow, uuid } from "./request.js";
 import { addSystemHistory, getHistoryByUid } from "./history.js";
+import {
+    addPendingLexa,
+    subtractPendingLexa,
+    getPendingLexa
+} from "./pendingLexa.js";
 
 /* ==========================================================
    CONSTANTS
@@ -239,9 +244,7 @@ function normalizeState(doc = {}, config = null) {
             target: Math.max(1, Math.floor(safeNumber(source?.referral?.target, cfg.tasks.referral.target))),
             rewardSpins: Math.max(1, Math.floor(safeNumber(source?.referral?.rewardSpins, cfg.tasks.referral.rewardSpins)))
         },
-pendingLexa: Number(source.pendingLexa || 0),
 
-totalLexa: Number(source.totalLexa || 0),
         daily: {
             current: Math.max(0, Math.floor(safeNumber(source?.daily?.current, cfg.tasks.daily.current))),
             target: Math.max(1, Math.floor(safeNumber(source?.daily?.target, cfg.tasks.daily.target))),
@@ -490,14 +493,14 @@ export async function getDashboard(env, uid) {
         getSpinHistory(env, uid, 20).catch(() => ({ items: [] }))
         
     ]);
-
+const pending = await getPendingLexa(env, uid);
     return {
         success: true,
         uid,
         spins: state.spins,
         availableSpins: state.spins,
-        pendingLexa: state.pendingLexa,
-        totalLexa: state.totalLexa,
+        pendingLexa: pending.pendingLexa,
+        totalLexa: pending.totalLexa,
         tasks: clone(config.tasks),
         exchange: clone(config.exchange),
         rules: clone(config.rules),
@@ -538,19 +541,11 @@ export async function startSpin(env, uid, input = {}) {
     const rolled = weightedPick(config.wheel.sectors);
     const reward = finalizeReward(rolled.sector);
     reward.sectorIndex = rolled.index;
-const pendingLexa =
-    Number(state.pendingLexa || 0) + reward.amount;
-
-const totalLexa =
-    Number(state.totalLexa || 0) + reward.amount;
 
     const nextState = normalizeState({
     ...state,
 
     spins: Math.max(0, state.spins - config.spinCost),
-
-    pendingLexa,
-    totalLexa,
 
     lastSpinAt: now(),
     lastSpinId: spinId,
@@ -568,7 +563,9 @@ const totalLexa =
 }, config);
 
 await saveSpinState(env, uid, nextState);
-
+if (reward.amount > 0) {
+    await addPendingLexa(env, uid, reward.amount);
+}
     await appendSpinHistory(env, uid, {
         title: "Lucky Spin",
         description: reward.description || `${reward.label} won`,
@@ -588,7 +585,7 @@ await saveSpinState(env, uid, nextState);
         },
         createdAt: now()
     });
-
+const pending = await getPendingLexa(env, uid);
     return {
     success: true,
 
@@ -602,9 +599,8 @@ await saveSpinState(env, uid, nextState);
 
     remainingSpins: nextState.spins,
 
-    pendingLexa: nextState.pendingLexa,
-
-    totalLexa: nextState.totalLexa,
+    pendingLexa: pending.pendingLexa,
+    totalLexa: pending.totalLexa,
 
     historyType: "system"
 };
@@ -642,25 +638,21 @@ export async function exchangeSpin(env, uid, input = {}) {
         )
     );
 
-const pendingLexa =
-    Number(state.pendingLexa || 0);
+const pending = await getPendingLexa(env, uid);
 
-if (pendingLexa < config.exchange.price) {
-    throw new Error(
-        "Insufficient Pending LEXA."
-    );
+if (pending.pendingLexa < config.exchange.price) {
+    throw new Error("Insufficient Pending LEXA.");
 }
+
+await subtractPendingLexa(
+    env,
+    uid,
+    config.exchange.price
+);
 
 const nextState = normalizeState({
 
     ...state,
-
-    pendingLexa:
-        roundAmount(
-            pendingLexa -
-            config.exchange.price,
-            8
-        ),
 
     spins:
         state.spins + rewardSpins,
@@ -687,7 +679,7 @@ await saveSpinState(env, uid, nextState);
         },
         createdAt: now()
     });
-
+const latestPending = await getPendingLexa(env, uid);
     return {
 
     success: true,
@@ -695,11 +687,8 @@ await saveSpinState(env, uid, nextState);
     remainingSpins:
         nextState.spins,
 
-    pendingLexa:
-        nextState.pendingLexa,
-
-    totalLexa:
-        nextState.totalLexa,
+    pendingLexa: latestPending.pendingLexa,
+    totalLexa: latestPending.totalLexa,
 
     exchangedAmount:
         amount,
@@ -761,23 +750,9 @@ const spinState =
         cfg
     );
 
-const pendingLexa =
-    Number(
-        spinState.pendingLexa || 0
-    ) + normalized.amount;
-
-const totalLexa =
-    Number(
-        spinState.totalLexa || 0
-    ) + normalized.amount;
-
 const nextState = normalizeState({
 
     ...spinState,
-
-    pendingLexa,
-
-    totalLexa,
 
     totalRewardsGranted:
         spinState.totalRewardsGranted +
@@ -792,7 +767,13 @@ await saveSpinState(
     uid,
     nextState
 );
-
+if (normalized.amount > 0) {
+    await addPendingLexa(
+        env,
+        uid,
+        normalized.amount
+    );
+}
     await appendSpinHistory(env, uid, {
         title: "Lucky Spin Reward",
         description: normalized.description || `${normalized.label} granted`,
@@ -808,21 +789,13 @@ await saveSpinState(
         createdAt: now()
     });
 
-    return {
+    const pending = await getPendingLexa(env, uid);
 
+return {
     success: true,
-
-    reward:
-        serializeReward(
-            normalized
-        ),
-
-    pendingLexa:
-        nextState.pendingLexa,
-
-    totalLexa:
-        nextState.totalLexa
-
+    reward: serializeReward(normalized),
+    pendingLexa: pending.pendingLexa,
+    totalLexa: pending.totalLexa
 };
 }
 
