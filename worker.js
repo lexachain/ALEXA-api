@@ -19,6 +19,10 @@ import { userRoute } from "./routes/user.js";
 import { calendarRoute } from "./routes/calendar.js";
 import { historyRoute } from "./routes/history.js";
 import { spinRoute } from "./routes/spin.js";
+import {
+    getPending,
+    migratePending
+} from "./routes/pending.js";
 
 /* ==========================================================
    ROUTE MAP
@@ -59,9 +63,12 @@ const ROUTES = [
     { method: "GET", path: "/wallet/history", handler: walletRoute },
 
     { method: "POST", path: "/mining", handler: miningRoute },
-    { method: "POST", path: "/mining/start", handler: miningRoute },
-    { method: "POST", path: "/mining/claim", handler: miningRoute },
-    { method: "POST", path: "/mining/state", handler: miningRoute },
+{ method: "POST", path: "/mining/start", handler: miningRoute },
+{ method: "POST", path: "/mining/claim", handler: miningRoute },
+{ method: "POST", path: "/mining/state", handler: miningRoute },
+
+{ method: "POST", path: "/pending", handler: getPending },
+{ method: "POST", path: "/pending/migrate", handler: migratePending },
 
 { method: "GET", path: "/activity", handler: historyRoute },
 { method: "GET",  path: "/calendar",        handler: calendarRoute },
