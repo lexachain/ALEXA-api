@@ -18,6 +18,8 @@ import { walletRoute } from "./routes/wallet.js";
 import { userRoute } from "./routes/user.js";
 import { calendarRoute } from "./routes/calendar.js";
 import { historyRoute } from "./routes/history.js";
+import { spinRoute } from "./routes/spin.js";
+
 /* ==========================================================
    ROUTE MAP
 ========================================================== */
@@ -66,6 +68,11 @@ const ROUTES = [
 { method: "POST", path: "/checkin/claim",   handler: calendarRoute },
 { method: "POST", path: "/social/claim",    handler: calendarRoute },
 { method: "POST", path: "/referral/claim",  handler: calendarRoute },
+
+{ method: "GET", path: "/api/spin", handler: spinRoute },
+{ method: "POST", path: "/api/spin/start", handler: spinRoute },
+{ method: "POST", path: "/api/spin/exchange", handler: spinRoute },
+{ method: "GET", path: "/api/spin/history", handler: spinRoute },
 
     { method: "GET", path: "/referral", handler: referralRoute },
     { method: "GET", path: "/referral/link", handler: referralRoute },
