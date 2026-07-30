@@ -17,7 +17,7 @@ import {
    GET PENDING
 ========================================================== */
 
-export async function getPending(request, env) {
+export async function getPending(env, request) {
 
     const uid = request.user.uid;
 
@@ -37,7 +37,7 @@ export async function getPending(request, env) {
    MIGRATE
 ========================================================== */
 
-export async function migratePending(request, env) {
+export async function migratePending(env, request) {
 
     const uid = request.user.uid;
 
