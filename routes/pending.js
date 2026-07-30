@@ -10,7 +10,12 @@ import {
 } from "../helpers/pendingLexa.js";
 
 import {
-    jsonResponse
+    requireUser
+} from "../helpers/security.js";
+
+import {
+    success,
+    error
 } from "../helpers/response.js";
 
 /* ==========================================================
@@ -19,37 +24,41 @@ import {
 
 export async function getPending(env, request) {
 
-    const uid = request.user.uid;
+    const user = await requireUser(env, request);
+    const uid = user?.uid;
 
-    const pending = await getPendingLexa(
-        env,
-        uid
-    );
+    if (!uid) {
+        return error(env, "Unauthorized user.", 401);
+    }
 
-    return jsonResponse({
-        success: true,
+    const pending =
+        await getPendingLexa(env, uid);
+
+    return success(env, {
         pending
     });
 
 }
-
 /* ==========================================================
    MIGRATE
 ========================================================== */
 
 export async function migratePending(env, request) {
 
-    const uid = request.user.uid;
+    const user = await requireUser(env, request);
+    const uid = user?.uid;
 
-    const amount = await migratePendingLexa(
-        env,
-        uid
-    );
+    if (!uid) {
+        return error(env, "Unauthorized user.", 401);
+    }
 
-    return jsonResponse({
-        success: true,
+    const amount =
+        await migratePendingLexa(env, uid);
+
+    return success(env, {
         amount,
-        message: "Pending LEXA migrated successfully."
+        message:
+            "Pending LEXA migrated successfully."
     });
 
 }
