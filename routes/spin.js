@@ -5,7 +5,7 @@
 ========================================================== */
 
 import { success, error } from "../helpers/response.js";
-import { verifyFirebaseIdToken } from "../helpers/auth.js";
+import { requireUser } from "../helpers/security.js";
 import {
     getDashboard,
     startSpin,
@@ -31,40 +31,6 @@ function normalizePath(pathname = "") {
     return path || "/";
 }
 
-/* ==========================================================
-   AUTH
-========================================================== */
-
-function getBearerToken(request) {
-    const authHeader =
-        request.headers.get("Authorization") ||
-        request.headers.get("authorization") ||
-        "";
-
-    if (!authHeader) return "";
-
-    if (authHeader.toLowerCase().startsWith("bearer ")) {
-        return authHeader.slice(7).trim();
-    }
-
-    return authHeader.trim();
-}
-
-async function requireUser(env, request) {
-    const token = getBearerToken(request);
-
-    if (!token) {
-        throw new Error("Missing Authorization bearer token.");
-    }
-
-    const user = await verifyFirebaseIdToken(env, token);
-
-    if (!user?.uid) {
-        throw new Error("Invalid Firebase user.");
-    }
-
-    return user;
-}
 
 /* ==========================================================
    BODY
