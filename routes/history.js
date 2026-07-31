@@ -7,7 +7,7 @@
 import { success, error } from "../helpers/response.js";
 import { requireUser } from "../helpers/security.js";
 import { getHistory, HISTORY_TYPE } from "../helpers/history.js";
-import { getMiningDoc, normalizeMining } from "../helpers/mining.js";
+import { getPendingLexa } from "../helpers/pendingLexa.js";
 
 /* ==========================================================
    CONFIG
@@ -67,24 +67,24 @@ async function handleActivityList(env, request, uid) {
         Number.MAX_SAFE_INTEGER
     );
 
-    const [pendingLexa, totalActivity, pageItems] = await Promise.all([
-        getPendingLexa(env, uid),
-        countTotalActivity(env, uid),
-        getActivityPage(env, uid, type, limit, cursor)
-    ]);
+    const [pending, totalActivity, pageItems] = await Promise.all([
+    getPendingLexa(env, uid),
+    countTotalActivity(env, uid),
+    getActivityPage(env, uid, type, limit, cursor)
+]);
 
-    return success(env, {
-        success: true,
-        summary: {
-            pendingLexa,
-            totalActivity,
-            hasMore: pageItems.hasMore,
-            nextCursor: pageItems.nextCursor
-        },
-        items: pageItems.items,
+return success(env, {
+    success: true,
+    summary: {
+        pendingLexa: Number(pending.pendingLexa || 0),
+        totalActivity,
         hasMore: pageItems.hasMore,
         nextCursor: pageItems.nextCursor
-    });
+    },
+    items: pageItems.items,
+    hasMore: pageItems.hasMore,
+    nextCursor: pageItems.nextCursor
+});
 }
 
 /* ==========================================================
@@ -139,16 +139,6 @@ async function countTotalActivity(env, uid) {
     return total;
 }
 
-async function getPendingLexa(env, uid) {
-    try {
-        const miningRaw = await getMiningDoc(env, uid);
-        const mining = normalizeMining(miningRaw || {});
-
-        return Number(mining.pendingLexa || 0);
-    } catch {
-        return 0;
-    }
-}
 
 /* ==========================================================
    UTIL
