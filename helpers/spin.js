@@ -22,19 +22,19 @@ const SPIN_STATE_COLLECTION = "spin";
 
 const DEFAULT_WELCOME_SPINS = 1;
 const DEFAULT_SPIN_COST = 1;
-const DEFAULT_EXCHANGE_PRICE = 0.1;
+const DEFAULT_EXCHANGE_PRICE = 0.7;
 const DEFAULT_EXCHANGE_REWARD_SPINS = 1;
 
 const DEFAULT_TASKS = {
     referral: {
         current: 0,
         target: 2,
-        rewardSpins: 1
+        rewardSpins: 3
     },
     daily: {
         current: 0,
         target: 7,
-        rewardSpins: 1
+        rewardSpins: 7
     },
     exchange: {
         price: DEFAULT_EXCHANGE_PRICE,
@@ -44,9 +44,9 @@ const DEFAULT_TASKS = {
 
 const DEFAULT_RULES = [
     "New users get 1 welcome spin.",
-    "Every 2 successful referrals earn +1 spin.",
-    "Daily check-in can earn +1 spin.",
-    "Exchange 0.1 LEXA for +1 spin.",
+    "Every 2 successful referrals earn +3 spin.",
+    "Daily check-in can earn +7 spin.",
+    "Exchange 0.7 LEXA for +1 spin.",
     "Rewards are determined by the server."
 ];
 
