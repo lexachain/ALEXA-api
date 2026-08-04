@@ -20,7 +20,8 @@ import {
     getReferralLink,
     getReferralHistory,
     getReferralLeaderboard,
-    applyReferral
+    applyReferral,
+    rewardReferral
 } from "../helpers/referral.js";
 import {
     getMiningDoc,
@@ -174,10 +175,14 @@ async function referralApply(request, env, uid) {
     const applied = await applyReferral(env, uid, inviterUid);
 
 if (applied) {
+
+    await rewardReferral(env, uid);
+
     await grantReferralSpin(env, inviterUid);
+
 }
 
-return success(env, {
+return success(env,{
     applied
 });
 }
