@@ -55,11 +55,13 @@ export async function grantReferralSpin(env, uid) {
 
     state.spins += 1;
 
-    state.invitedMembers += 1;
+const invited = Number(state.invitedMembers || 0) + 1;
 
-    state.totalInvite = state.invitedMembers;
+state.invitedMembers = invited;
+state.totalInvite = invited;
+state.verifiedInvite = invited;
 
-    state.verifiedInvite = state.invitedMembers;
+state.referral.current = invited;
 
     if (!state.referral) {
     state.referral = {};
@@ -70,6 +72,9 @@ state.referral.target ??= 1;
 state.referral.rewardSpins ??= 1;
 
     state.updatedAt = now();
+
+state.availableSpins = state.spins;
+state.updatedAt = now();
 
     await saveSpinState(env, uid, state);
 
@@ -281,9 +286,32 @@ function normalizeState(doc = {}, config = null) {
     );
 
     return {
-        uid: String(source.uid || ""),
-        spins: Math.max(0, Math.floor(safeNumber(source.spins ?? source.availableSpins, 0))),
-        invitedMembers,
+
+    uid: String(source.uid || ""),
+
+    spins: Math.max(
+        0,
+        Math.floor(
+            safeNumber(
+                source.availableSpins ??
+                source.spins,
+                0
+            )
+        )
+    ),
+
+    availableSpins: Math.max(
+        0,
+        Math.floor(
+            safeNumber(
+                source.availableSpins ??
+                source.spins,
+                0
+            )
+        )
+    ),
+
+    invitedMembers,
         totalInvite: invitedMembers,
         verifiedInvite: invitedMembers,
         welcomeSpinGranted: Boolean(source.welcomeSpinGranted ?? source.welcomeGranted ?? false),
@@ -477,10 +505,24 @@ async function ensureSpinState(env, uid, config = null) {
 }
 
 async function saveSpinState(env, uid, state) {
+
     const cfg = await readConfig(env);
-    const normalized = normalizeState({ ...state, uid }, cfg);
-    await safeSetDocument(env, getStatePath(uid), normalized);
+
+    const normalized = normalizeState(
+        { ...state, uid },
+        cfg
+    );
+
+    normalized.availableSpins = normalized.spins;
+
+    await safeSetDocument(
+        env,
+        getStatePath(uid),
+        normalized
+    );
+
     return normalized;
+
 }
 
 async function appendSpinHistory(env, uid, {
@@ -579,6 +621,7 @@ export async function startSpin(env, uid, input = {}) {
     const nextState = normalizeState({
         ...state,
         spins: Math.max(0, state.spins - config.spinCost),
+        availableSpins: Math.max(0, state.spins - config.spinCost),
         lastSpinAt: now(),
         lastSpinId: spinId,
         lastSpinReward: reward,
