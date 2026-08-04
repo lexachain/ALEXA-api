@@ -418,8 +418,11 @@ export async function getReferralLeaderboard(
                 `users/${uid}`
             );
 
-        leaderboard.push({
+        const mining = normalizeMining(
+    await getMiningDoc(env, uid)
+);
 
+leaderboard.push({
     uid,
 
     username:
@@ -431,8 +434,10 @@ export async function getReferralLeaderboard(
         user?.avatar ||
         "assets/avatar/default.png",
 
-    referralCount
+    referralCount,
 
+    referralBonus:
+        Number(mining.referralBonus || 0)
 });
 
     }
