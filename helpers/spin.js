@@ -47,6 +47,25 @@ const DEFAULT_REWARD_POOL = [
 /* ==========================================================
    UTILITIES
 ========================================================== */
+function addClass(element, ...classes) {
+    if (!element) return;
+    element.classList.add(...classes.filter(Boolean));
+}
+
+function removeClass(element, ...classes) {
+    if (!element) return;
+    element.classList.remove(...classes.filter(Boolean));
+}
+
+function restartClass(element, className) {
+    if (!element) return;
+
+    element.classList.remove(className);
+
+    void element.offsetWidth;
+
+    element.classList.add(className);
+}
 
 function clone(value) {
     return value == null ? value : JSON.parse(JSON.stringify(value));
