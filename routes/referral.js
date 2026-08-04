@@ -26,6 +26,7 @@ import {
     getMiningDoc,
     normalizeMining
 } from "../helpers/mining.js";
+import { grantReferralSpin } from "../helpers/spin.js";
 
 /* ==========================================================
    ROUTE
@@ -172,7 +173,11 @@ async function referralApply(request, env, uid) {
 
     const applied = await applyReferral(env, uid, inviterUid);
 
-    return success(env, {
-        applied
-    });
+if (applied) {
+    await grantReferralSpin(env, inviterUid);
+}
+
+return success(env, {
+    applied
+});
 }
