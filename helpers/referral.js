@@ -26,6 +26,11 @@ import {
 import {
     getNow
 } from "./request.js";
+
+import {
+    grantReferralSpin
+} from "./spin.js";
+
 import {
     getMiningDoc,
     setMiningDoc,
@@ -246,6 +251,12 @@ await setMiningDoc(
     inviterUid,
     mining
 );
+
+await grantReferralSpin(
+    env,
+    inviterUid
+);
+
     referral.rewardClaimed = true;
 referral.rewardAmount = INVITER_REWARD;
 referral.rewardedAt = getNow();
