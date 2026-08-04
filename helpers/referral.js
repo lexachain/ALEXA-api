@@ -26,6 +26,11 @@ import {
 import {
     getNow
 } from "./request.js";
+import {
+    getMiningDoc,
+    setMiningDoc,
+    normalizeMining
+} from "./mining.js";
 
 /* ==========================================================
    CONFIG
@@ -227,6 +232,19 @@ export async function rewardReferral(
     env,
     inviterUid,
     INVITER_REWARD
+);
+const mining = normalizeMining(
+    await getMiningDoc(env, inviterUid)
+);
+
+mining.referralBonus =
+    Number(mining.referralBonus || 0) +
+    INVITER_REWARD;
+
+await setMiningDoc(
+    env,
+    inviterUid,
+    mining
 );
     referral.rewardClaimed = true;
 referral.rewardAmount = INVITER_REWARD;

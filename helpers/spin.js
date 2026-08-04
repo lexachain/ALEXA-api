@@ -47,24 +47,44 @@ const DEFAULT_REWARD_POOL = [
 /* ==========================================================
    UTILITIES
 ========================================================== */
-function addClass(element, ...classes) {
-    if (!element) return;
-    element.classList.add(...classes.filter(Boolean));
+export async function grantReferralSpin(env, uid) {
+
+    const config = await readConfig(env);
+
+    const state = await ensureSpinState(env, uid, config);
+
+    state.spins += 1;
+
+    state.invitedMembers += 1;
+
+    state.totalInvite = state.invitedMembers;
+
+    state.verifiedInvite = state.invitedMembers;
+
+    if (!state.referral) {
+    state.referral = {};
 }
 
-function removeClass(element, ...classes) {
-    if (!element) return;
-    element.classList.remove(...classes.filter(Boolean));
-}
+state.referral.current = state.invitedMembers;
+state.referral.target ??= 1;
+state.referral.rewardSpins ??= 1;
 
-function restartClass(element, className) {
-    if (!element) return;
+    state.updatedAt = now();
 
-    element.classList.remove(className);
+    await saveSpinState(env, uid, state);
 
-    void element.offsetWidth;
+    await appendSpinHistory(env, uid, {
+        title: "Referral Reward",
+        description: "Verified referral +1 Spin",
+        amount: 0,
+        metadata:{
+            feature:"spin",
+            action:"referral"
+        }
+    });
 
-    element.classList.add(className);
+    return state;
+
 }
 
 function clone(value) {
