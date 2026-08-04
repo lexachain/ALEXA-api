@@ -53,7 +53,8 @@ export async function grantReferralSpin(env, uid) {
 
     const state = await ensureSpinState(env, uid, config);
 
-    state.spins += 1;
+    state.spins = Number(state.spins || 0) + 1;
+state.availableSpins = state.spins;
 
 const invited = Number(state.invitedMembers || 0) + 1;
 
@@ -61,18 +62,13 @@ state.invitedMembers = invited;
 state.totalInvite = invited;
 state.verifiedInvite = invited;
 
-state.referral.current = invited;
-
-    if (!state.referral) {
+if (!state.referral) {
     state.referral = {};
 }
 
-state.referral.current = state.invitedMembers;
+state.referral.current = invited;
 state.referral.target ??= 1;
 state.referral.rewardSpins ??= 1;
-
-    state.updatedAt = now();
-
 state.availableSpins = state.spins;
 state.updatedAt = now();
 
@@ -846,6 +842,7 @@ export default {
     getSpinConfig,
     setSpinConfig,
     resetSpinState,
-    getSpinHistory
+    getSpinHistory,
+    grantReferralSpin
     
 };
