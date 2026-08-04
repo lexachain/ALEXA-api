@@ -1,17 +1,13 @@
 /* ==========================================================
-   ALEXA API
+   ALEXA
    File : helpers/spin.js
-   Description : Lucky Spin Business Logic
+   Description : Lucky Spin Business Logic (Referral Only)
 ========================================================== */
 
 import { getDocument, setDocument } from "./firestore.js";
 import { getNow, uuid } from "./request.js";
 import { addSystemHistory, getHistoryByUid } from "./history.js";
-import {
-    addPendingLexa,
-    subtractPendingLexa,
-    getPendingLexa
-} from "./pendingLexa.js";
+import { addPendingLexa, getPendingLexa } from "./pendingLexa.js";
 
 /* ==========================================================
    CONSTANTS
@@ -22,32 +18,20 @@ const SPIN_STATE_COLLECTION = "spin";
 
 const DEFAULT_WELCOME_SPINS = 1;
 const DEFAULT_SPIN_COST = 1;
-const DEFAULT_EXCHANGE_PRICE = 0.7;
-const DEFAULT_EXCHANGE_REWARD_SPINS = 1;
 
 const DEFAULT_TASKS = {
     referral: {
         current: 0,
-        target: 2,
-        rewardSpins: 3
-    },
-    daily: {
-        current: 0,
-        target: 7,
-        rewardSpins: 7
-    },
-    exchange: {
-        price: DEFAULT_EXCHANGE_PRICE,
-        rewardSpins: DEFAULT_EXCHANGE_REWARD_SPINS
+        target: 1,
+        rewardSpins: 1
     }
 };
 
 const DEFAULT_RULES = [
-    "New users get 1 welcome spin.",
-    "Every 2 successful referrals earn +3 spin.",
-    "Daily check-in can earn +7 spin.",
-    "Exchange 0.7 LEXA for +1 spin.",
-    "Rewards are determined by the server."
+    "🎁 New users receive 1 welcome spin.",
+    "👥 Every verified referral earns +1 spin.",
+    "🪙 Lucky Spin rewards are added to Pending LEXA.",
+    "☁️ All rewards are securely validated by the server."
 ];
 
 const DEFAULT_REWARD_POOL = [
@@ -61,7 +45,7 @@ const DEFAULT_REWARD_POOL = [
 ];
 
 /* ==========================================================
-   INTERNAL HELPERS
+   UTILITIES
 ========================================================== */
 
 function clone(value) {
@@ -69,28 +53,7 @@ function clone(value) {
 }
 
 function isObject(value) {
-    return value && typeof value === "object" && !Array.isArray(value);
-}
-
-function deepMerge(base, extra) {
-    const out = clone(base) || {};
-    if (!isObject(extra)) return out;
-
-    for (const [key, value] of Object.entries(extra)) {
-        if (Array.isArray(value)) {
-            out[key] = clone(value);
-            continue;
-        }
-
-        if (isObject(value) && isObject(out[key])) {
-            out[key] = deepMerge(out[key], value);
-            continue;
-        }
-
-        out[key] = clone(value);
-    }
-
-    return out;
+    return Boolean(value) && typeof value === "object" && !Array.isArray(value);
 }
 
 function safeNumber(value, fallback = 0) {
@@ -118,15 +81,6 @@ function makeId() {
     return String(uuid?.() || crypto.randomUUID());
 }
 
-function normalizeType(type) {
-    const value = String(type || "").trim().toLowerCase();
-    if (["lexa", "mystery", "jackpot", "nothing"].includes(value)) return value;
-    if (value.includes("jackpot")) return "jackpot";
-    if (value.includes("mystery")) return "mystery";
-    if (value.includes("nothing")) return "nothing";
-    return "lexa";
-}
-
 function defaultColor(index) {
     const palette = [
         "#D4AF37",
@@ -140,6 +94,15 @@ function defaultColor(index) {
     return palette[index % palette.length];
 }
 
+function normalizeType(type) {
+    const value = String(type || "").trim().toLowerCase();
+    if (["lexa", "mystery", "jackpot", "nothing"].includes(value)) return value;
+    if (value.includes("jackpot")) return "jackpot";
+    if (value.includes("mystery")) return "mystery";
+    if (value.includes("nothing")) return "nothing";
+    return "lexa";
+}
+
 function inferSectorType(label) {
     const text = String(label || "").toLowerCase();
     if (text.includes("mystery")) return "mystery";
@@ -148,57 +111,87 @@ function inferSectorType(label) {
     return "lexa";
 }
 
-function normalizeSector(item, index = 0) {
-    const label = String(
-        item?.label ??
-        item?.name ??
-        item?.title ??
-        item?.rewardLabel ??
-        item?.reward ??
-        "Reward"
-    );
+function normalizeHexColor(value, fallback) {
+    const input = String(value || "").trim();
+    if (!/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(input)) return fallback;
 
-    const amount = item?.amount ?? item?.value ?? null;
+    if (input.length === 4) {
+        const r = input[1];
+        const g = input[2];
+        const b = input[3];
+        return `#${r}${r}${g}${g}${b}${b}`.toUpperCase();
+    }
 
+    return input.toUpperCase();
+}
+
+function hexToRgb(hex) {
+    const clean = normalizeHexColor(hex, "#000000").replace("#", "");
     return {
-        label,
-        amount: amount == null ? null : safeNumber(amount, null),
-        type: normalizeType(item?.type || inferSectorType(label)),
-        chance: item?.chance ?? item?.probability ?? item?.weight ?? null,
-        minAmount: item?.minAmount ?? item?.min ?? 1,
-        maxAmount: item?.maxAmount ?? item?.max ?? 20,
-        color: String(item?.color || item?.hex || defaultColor(index)),
-        sectorIndex: Number.isInteger(item?.sectorIndex) ? item.sectorIndex : index,
-        description: String(item?.description || "")
+        r: Number.parseInt(clean.slice(0, 2), 16),
+        g: Number.parseInt(clean.slice(2, 4), 16),
+        b: Number.parseInt(clean.slice(4, 6), 16)
     };
 }
 
-function normalizeRewardPool(input) {
-    const pool = Array.isArray(input) && input.length ? input : DEFAULT_REWARD_POOL;
-    return pool.map((item, index) => normalizeSector(item, index));
+function rgbToHex(r, g, b) {
+    const toHex = (v) => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0");
+    return `#${toHex(r)}${toHex(g)}${toHex(b)}`.toUpperCase();
+}
+
+function mixHex(a, b, amount = 0.5) {
+    const c1 = hexToRgb(a);
+    const c2 = hexToRgb(b);
+    const t = Math.max(0, Math.min(1, amount));
+
+    return rgbToHex(
+        c1.r + (c2.r - c1.r) * t,
+        c1.g + (c2.g - c1.g) * t,
+        c1.b + (c2.b - c1.b) * t
+    );
+}
+
+function safeLimit(limit, fallback = 20, max = 100) {
+    const n = safeNumber(limit, fallback);
+    return Math.max(1, Math.min(max, Math.floor(n)));
+}
+
+/* ==========================================================
+   NORMALIZERS
+========================================================== */
+
+function normalizeSector(item = {}, index = 0) {
+    return {
+        label: String(item.label || item.name || item.title || "Reward"),
+        amount: item.amount == null ? null : safeNumber(item.amount, null),
+        type: normalizeType(item.type || inferSectorType(item.label || item.name || item.title || "")),
+        chance: item.chance ?? item.probability ?? item.weight ?? null,
+        minAmount: item.minAmount ?? item.min ?? 1,
+        maxAmount: item.maxAmount ?? item.max ?? 20,
+        color: normalizeHexColor(item.color || item.hex, defaultColor(index)),
+        sectorIndex: Number.isInteger(item.sectorIndex) ? item.sectorIndex : index,
+        description: String(item.description || "")
+    };
+}
+
+function normalizeSectors(input = []) {
+    const list = Array.isArray(input) && input.length ? input : DEFAULT_REWARD_POOL;
+    return list.map((item, index) => normalizeSector(item, index));
 }
 
 function normalizeTasks(input = {}) {
     const source = isObject(input) ? input : {};
+    const referralSrc = source.referral ?? source.tasks?.referral ?? {};
     return {
         referral: {
-            current: safeNumber(source?.referral?.current, DEFAULT_TASKS.referral.current),
-            target: Math.max(1, safeNumber(source?.referral?.target, DEFAULT_TASKS.referral.target)),
-            rewardSpins: Math.max(1, safeNumber(source?.referral?.rewardSpins, DEFAULT_TASKS.referral.rewardSpins))
-        },
-        daily: {
-            current: safeNumber(source?.daily?.current, DEFAULT_TASKS.daily.current),
-            target: Math.max(1, safeNumber(source?.daily?.target, DEFAULT_TASKS.daily.target)),
-            rewardSpins: Math.max(1, safeNumber(source?.daily?.rewardSpins, DEFAULT_TASKS.daily.rewardSpins))
-        },
-        exchange: {
-            price: Math.max(0, safeNumber(source?.exchange?.price, DEFAULT_TASKS.exchange.price)),
-            rewardSpins: Math.max(1, safeNumber(source?.exchange?.rewardSpins, DEFAULT_TASKS.exchange.rewardSpins))
+            current: Math.max(0, Math.floor(safeNumber(referralSrc.current, DEFAULT_TASKS.referral.current))),
+            target: Math.max(1, Math.floor(safeNumber(referralSrc.target, DEFAULT_TASKS.referral.target))),
+            rewardSpins: Math.max(1, Math.floor(safeNumber(referralSrc.rewardSpins, DEFAULT_TASKS.referral.rewardSpins)))
         }
     };
 }
 
-function normalizeRules(input) {
+function normalizeRules(input = []) {
     return Array.isArray(input) && input.length ? input.map(String) : clone(DEFAULT_RULES);
 }
 
@@ -212,17 +205,16 @@ function normalizeConfig(doc = {}) {
         source.rewardPool ||
         DEFAULT_REWARD_POOL;
 
+    const tasks = normalizeTasks(source.tasks ?? source);
+
     return {
         spinCost: Math.max(0, safeNumber(source.spinCost ?? source.cost, DEFAULT_SPIN_COST)),
         welcomeSpinCount: Math.max(0, safeNumber(source.welcomeSpinCount ?? source.welcomeSpins, DEFAULT_WELCOME_SPINS)),
-        exchange: {
-            price: Math.max(0, safeNumber(source?.exchange?.price, DEFAULT_EXCHANGE_PRICE)),
-            rewardSpins: Math.max(1, safeNumber(source?.exchange?.rewardSpins, DEFAULT_EXCHANGE_REWARD_SPINS))
-        },
-        tasks: normalizeTasks(source.tasks),
+        tasks,
+        referral: clone(tasks.referral),
         rules: normalizeRules(source.rules),
         wheel: {
-            sectors: normalizeRewardPool(sectors)
+            sectors: normalizeSectors(sectors)
         }
     };
 }
@@ -235,31 +227,38 @@ function normalizeState(doc = {}, config = null) {
     const source = isObject(doc) ? doc : {};
     const cfg = config || normalizeConfig();
 
+    const invitedMembers = Math.max(
+        0,
+        Math.floor(
+            safeNumber(
+                source.invitedMembers ??
+                source.totalInvite ??
+                source.verifiedInvite ??
+                source?.referral?.current ??
+                cfg.tasks.referral.current,
+                cfg.tasks.referral.current
+            )
+        )
+    );
+
     return {
         uid: String(source.uid || ""),
         spins: Math.max(0, Math.floor(safeNumber(source.spins ?? source.availableSpins, 0))),
+        invitedMembers,
+        totalInvite: invitedMembers,
+        verifiedInvite: invitedMembers,
         welcomeSpinGranted: Boolean(source.welcomeSpinGranted ?? source.welcomeGranted ?? false),
         referral: {
-            current: Math.max(0, Math.floor(safeNumber(source?.referral?.current, cfg.tasks.referral.current))),
+            current: invitedMembers,
             target: Math.max(1, Math.floor(safeNumber(source?.referral?.target, cfg.tasks.referral.target))),
             rewardSpins: Math.max(1, Math.floor(safeNumber(source?.referral?.rewardSpins, cfg.tasks.referral.rewardSpins)))
-        },
-
-        daily: {
-            current: Math.max(0, Math.floor(safeNumber(source?.daily?.current, cfg.tasks.daily.current))),
-            target: Math.max(1, Math.floor(safeNumber(source?.daily?.target, cfg.tasks.daily.target))),
-            rewardSpins: Math.max(1, Math.floor(safeNumber(source?.daily?.rewardSpins, cfg.tasks.daily.rewardSpins)))
-        },
-        exchange: {
-            price: Math.max(0, safeNumber(source?.exchange?.price, cfg.exchange.price)),
-            rewardSpins: Math.max(1, Math.floor(safeNumber(source?.exchange?.rewardSpins, cfg.exchange.rewardSpins)))
         },
         lastSpinAt: safeNumber(source.lastSpinAt, 0),
         lastSpinId: String(source.lastSpinId || ""),
         lastSpinReward: isObject(source.lastSpinReward) ? source.lastSpinReward : null,
         totalSpinsUsed: Math.max(0, Math.floor(safeNumber(source.totalSpinsUsed, 0))),
         totalRewardsGranted: Math.max(0, Math.floor(safeNumber(source.totalRewardsGranted, 0))),
-        totalExchangeCount: Math.max(0, Math.floor(safeNumber(source.totalExchangeCount, 0))),
+        rotation: safeNumber(source.rotation, 0),
         updatedAt: safeNumber(source.updatedAt, 0),
         createdAt: safeNumber(source.createdAt, 0)
     };
@@ -275,9 +274,7 @@ function spinHistoryFilter(item = {}) {
     return (
         feature === "spin" ||
         action === "reward" ||
-        action === "exchange" ||
         title.includes("lucky spin") ||
-        title.includes("spin exchange") ||
         description.includes("lucky spin") ||
         (type === "system" && (title.includes("spin") || description.includes("spin")))
     );
@@ -299,6 +296,22 @@ function serializeHistoryItem(item = {}) {
     };
 }
 
+function buildRewardDescription(reward, amount) {
+    if (reward?.type === "mystery") {
+        return `Mystery Box reward: ${formatLexa(amount)} LEXA`;
+    }
+
+    if (reward?.type === "jackpot") {
+        return `Jackpot reward: ${formatLexa(amount)} LEXA`;
+    }
+
+    if (reward?.type === "nothing") {
+        return "No reward.";
+    }
+
+    return `${formatLexa(amount)} LEXA reward`;
+}
+
 function serializeReward(reward = {}, sectorIndex = 0) {
     const amount = reward.type === "nothing"
         ? 0
@@ -316,98 +329,13 @@ function serializeReward(reward = {}, sectorIndex = 0) {
     };
 }
 
-function buildRewardDescription(reward, amount) {
-    if (reward?.type === "mystery") {
-        return `Mystery Box reward: ${formatLexa(amount)} LEXA`;
-    }
-
-    if (reward?.type === "jackpot") {
-        return `Jackpot reward: ${formatLexa(amount)} LEXA`;
-    }
-
-    if (reward?.type === "nothing") {
-        return "No reward.";
-    }
-
-    return `${formatLexa(amount)} LEXA reward`;
-}
-
 function buildTicketId(spinId) {
     const suffix = String(spinId || makeId()).replace(/-/g, "").slice(0, 10).toUpperCase();
     return `SPIN-${suffix}`;
 }
 
-function safeLimit(limit, fallback = 20, max = 100) {
-    const n = safeNumber(limit, fallback);
-    return Math.max(1, Math.min(max, Math.floor(n)));
-}
-
-async function safeGetDocument(env, path) {
-    try {
-        return await getDocument(env, path);
-    } catch {
-        return null;
-    }
-}
-
-async function safeSetDocument(env, path, data) {
-    return setDocument(env, path, data);
-}
-
-async function readConfig(env) {
-    const raw = await safeGetDocument(env, SPIN_CONFIG_PATH);
-    return normalizeConfig(raw || {});
-}
-
-async function writeConfig(env, config) {
-    const normalized = normalizeConfig(config || {});
-    await safeSetDocument(env, SPIN_CONFIG_PATH, normalized);
-    return normalized;
-}
-
-async function ensureSpinState(env, uid, config = null) {
-    const cfg = config || await readConfig(env);
-    const path = getStatePath(uid);
-    const raw = await safeGetDocument(env, path);
-
-    if (!raw) {
-        const createdAt = now();
-        const initial = normalizeState({
-            uid,
-            spins: cfg.welcomeSpinCount,
-            welcomeSpinGranted: cfg.welcomeSpinCount > 0,
-            referral: cfg.tasks.referral,
-            daily: cfg.tasks.daily,
-            exchange: cfg.exchange,
-            createdAt,
-            updatedAt: createdAt
-        }, cfg);
-
-        await safeSetDocument(env, path, initial);
-        return initial;
-    }
-
-    const normalized = normalizeState({ ...raw, uid }, cfg);
-    if (!normalized.createdAt) normalized.createdAt = safeNumber(raw?.createdAt, now());
-    if (!normalized.updatedAt) normalized.updatedAt = safeNumber(raw?.updatedAt, now());
-
-    const needsWrite = JSON.stringify(normalized) !== JSON.stringify(raw);
-    if (needsWrite) {
-        await safeSetDocument(env, path, normalized);
-    }
-
-    return normalized;
-}
-
-async function saveSpinState(env, uid, state) {
-    const cfg = await readConfig(env);
-    const normalized = normalizeState({ ...state, uid }, cfg);
-    await safeSetDocument(env, getStatePath(uid), normalized);
-    return normalized;
-}
-
 function weightedPick(pool) {
-    const items = Array.isArray(pool) && pool.length ? pool : normalizeRewardPool(DEFAULT_REWARD_POOL);
+    const items = Array.isArray(pool) && pool.length ? pool : normalizeSectors(DEFAULT_REWARD_POOL);
     const weights = items.map((item) => {
         const w = safeNumber(item.chance ?? item.probability ?? item.weight, 0);
         return w > 0 ? w : 1;
@@ -451,6 +379,71 @@ function finalizeReward(sector) {
     return reward;
 }
 
+async function safeGetDocument(env, path) {
+    try {
+        return await getDocument(env, path);
+    } catch {
+        return null;
+    }
+}
+
+async function safeSetDocument(env, path, data) {
+    return setDocument(env, path, data);
+}
+
+async function readConfig(env) {
+    const raw = await safeGetDocument(env, SPIN_CONFIG_PATH);
+    return normalizeConfig(raw || {});
+}
+
+async function writeConfig(env, config) {
+    const normalized = normalizeConfig(config || {});
+    await safeSetDocument(env, SPIN_CONFIG_PATH, normalized);
+    return normalized;
+}
+
+async function ensureSpinState(env, uid, config = null) {
+    const cfg = config || await readConfig(env);
+    const path = getStatePath(uid);
+    const raw = await safeGetDocument(env, path);
+
+    if (!raw) {
+        const createdAt = now();
+        const initial = normalizeState({
+            uid,
+            spins: cfg.welcomeSpinCount,
+            welcomeSpinGranted: cfg.welcomeSpinCount > 0,
+            referral: cfg.tasks.referral,
+            invitedMembers: 0,
+            totalInvite: 0,
+            verifiedInvite: 0,
+            createdAt,
+            updatedAt: createdAt
+        }, cfg);
+
+        await safeSetDocument(env, path, initial);
+        return initial;
+    }
+
+    const normalized = normalizeState({ ...raw, uid }, cfg);
+    if (!normalized.createdAt) normalized.createdAt = safeNumber(raw?.createdAt, now());
+    if (!normalized.updatedAt) normalized.updatedAt = safeNumber(raw?.updatedAt, now());
+
+    const needsWrite = JSON.stringify(normalized) !== JSON.stringify(raw);
+    if (needsWrite) {
+        await safeSetDocument(env, path, normalized);
+    }
+
+    return normalized;
+}
+
+async function saveSpinState(env, uid, state) {
+    const cfg = await readConfig(env);
+    const normalized = normalizeState({ ...state, uid }, cfg);
+    await safeSetDocument(env, getStatePath(uid), normalized);
+    return normalized;
+}
+
 async function appendSpinHistory(env, uid, {
     title,
     description,
@@ -478,54 +471,56 @@ async function appendSpinHistory(env, uid, {
    PUBLIC API
 ========================================================== */
 
-/**
- * Build the Lucky Spin dashboard payload for the frontend.
- * @param {object} env Cloudflare Worker environment
- * @param {string} uid Firebase/ALEXA user id
- * @returns {Promise<object>}
- */
 export async function getDashboard(env, uid) {
     if (!uid) throw new Error("Missing uid.");
 
-    const [config, state, history] = await Promise.all([
-        readConfig(env),
-        ensureSpinState(env, uid),
-        getSpinHistory(env, uid, 20).catch(() => ({ items: [] }))
-        
+    const config = await readConfig(env);
+    const [state, history, pending] = await Promise.all([
+        ensureSpinState(env, uid, config),
+        getSpinHistory(env, uid, 20).catch(() => ({ items: [] })),
+        getPendingLexa(env, uid).catch(() => ({ pendingLexa: 0, totalLexa: 0 }))
     ]);
-const pending = await getPendingLexa(env, uid);
+
+    const invitedMembers = Math.max(0, Math.floor(state.invitedMembers || 0));
+
     return {
         success: true,
         uid,
         spins: state.spins,
         availableSpins: state.spins,
-        pendingLexa: pending.pendingLexa,
-        totalLexa: pending.totalLexa,
-        tasks: clone(config.tasks),
-        exchange: clone(config.exchange),
+        invitedMembers,
+        totalInvite: invitedMembers,
+        verifiedInvite: invitedMembers,
+        pendingLexa: pending.pendingLexa ?? 0,
+        totalLexa: pending.totalLexa ?? 0,
+        pending: {
+            pendingLexa: pending.pendingLexa ?? 0,
+            totalLexa: pending.totalLexa ?? 0
+        },
+        tasks: {
+            referral: clone(state.referral)
+        },
+        task: {
+            referral: clone(state.referral)
+        },
+        referral: clone(state.referral),
         rules: clone(config.rules),
         wheel: {
             sectors: clone(config.wheel.sectors)
         },
+        sectors: clone(config.wheel.sectors),
         rewardPool: clone(config.wheel.sectors),
         history: history.items || [],
+        rotation: state.rotation || 0,
         state: {
             welcomeSpinGranted: Boolean(state.welcomeSpinGranted),
             lastSpinAt: state.lastSpinAt || 0,
             totalSpinsUsed: state.totalSpinsUsed || 0,
-            totalRewardsGranted: state.totalRewardsGranted || 0,
-            totalExchangeCount: state.totalExchangeCount || 0
+            totalRewardsGranted: state.totalRewardsGranted || 0
         }
     };
 }
 
-/**
- * Consume one spin, generate the reward, add Pending LEXA and write system history.
- * @param {object} env Cloudflare Worker environment
- * @param {string} uid User id
- * @param {object} [input]
- * @returns {Promise<object>}
- */
 export async function startSpin(env, uid, input = {}) {
     if (!uid) throw new Error("Missing uid.");
 
@@ -543,29 +538,22 @@ export async function startSpin(env, uid, input = {}) {
     reward.sectorIndex = rolled.index;
 
     const nextState = normalizeState({
-    ...state,
+        ...state,
+        spins: Math.max(0, state.spins - config.spinCost),
+        lastSpinAt: now(),
+        lastSpinId: spinId,
+        lastSpinReward: reward,
+        totalSpinsUsed: state.totalSpinsUsed + 1,
+        totalRewardsGranted: state.totalRewardsGranted + (reward.amount > 0 ? 1 : 0),
+        updatedAt: now()
+    }, config);
 
-    spins: Math.max(0, state.spins - config.spinCost),
+    await saveSpinState(env, uid, nextState);
 
-    lastSpinAt: now(),
-    lastSpinId: spinId,
-    lastSpinReward: reward,
+    if (reward.amount > 0) {
+        await addPendingLexa(env, uid, reward.amount);
+    }
 
-    totalSpinsUsed:
-        state.totalSpinsUsed + 1,
-
-    totalRewardsGranted:
-        state.totalRewardsGranted +
-        (reward.amount > 0 ? 1 : 0),
-
-    updatedAt: now()
-
-}, config);
-
-await saveSpinState(env, uid, nextState);
-if (reward.amount > 0) {
-    await addPendingLexa(env, uid, reward.amount);
-}
     await appendSpinHistory(env, uid, {
         title: "Lucky Spin",
         description: reward.description || `${reward.label} won`,
@@ -585,195 +573,60 @@ if (reward.amount > 0) {
         },
         createdAt: now()
     });
-const pending = await getPendingLexa(env, uid);
-    return {
-    success: true,
 
-    spinId,
-    ticketId,
-
-    reward: serializeReward(
-        reward,
-        reward.sectorIndex
-    ),
-
-    remainingSpins: nextState.spins,
-
-    pendingLexa: pending.pendingLexa,
-    totalLexa: pending.totalLexa,
-
-    historyType: "system"
-};
-}
-
-/**
- * Convert LEXA into one spin.
- * @param {object} env Cloudflare Worker environment
- * @param {string} uid User id
- * @param {object|number|string} [input]
- * @returns {Promise<object>}
- */
-export async function exchangeSpin(env, uid, input = {}) {
-    if (!uid) throw new Error("Missing uid.");
-
-    const config = await readConfig(env);
-    const state = await ensureSpinState(env, uid, config);
-    const amount = roundAmount(
-        isObject(input) ? (input.amount ?? input.price ?? config.exchange.price) : input,
-        8
-    );
-
-    if (!Number.isFinite(amount) || amount <= 0) {
-        throw new Error("Invalid exchange amount.");
-    }
-
-    const rewardSpins =
-    Math.max(
-        1,
-        Math.floor(
-            safeNumber(
-                config.exchange.rewardSpins,
-                1
-            )
-        )
-    );
-
-const pending = await getPendingLexa(env, uid);
-
-if (pending.pendingLexa < config.exchange.price) {
-    throw new Error("Insufficient Pending LEXA.");
-}
-
-await subtractPendingLexa(
-    env,
-    uid,
-    config.exchange.price
-);
-
-const nextState = normalizeState({
-
-    ...state,
-
-    spins:
-        state.spins + rewardSpins,
-
-    totalExchangeCount:
-        state.totalExchangeCount + 1,
-
-    updatedAt: now()
-
-}, config);
-
-await saveSpinState(env, uid, nextState);
-
-    await appendSpinHistory(env, uid, {
-        title: "Spin Exchange",
-        description: `${formatLexa(amount)} LEXA converted into +${rewardSpins} spin`,
-        amount: rewardSpins,
-        token: "SPIN",
-        status: "success",
-        metadata: {
-            action: "exchange",
-            exchangeAmount: amount,
-            exchangeRewardSpins: rewardSpins
-        },
-        createdAt: now()
-    });
-const latestPending = await getPendingLexa(env, uid);
-    return {
-
-    success: true,
-
-    remainingSpins:
-        nextState.spins,
-
-    pendingLexa: latestPending.pendingLexa,
-    totalLexa: latestPending.totalLexa,
-
-    exchangedAmount:
-        amount,
-
-    rewardSpins,
-
-    message:
-        `Converted ${formatLexa(amount)} Pending LEXA into +${rewardSpins} spin.`
-
-};
-}
-
-/**
- * Return spin history items stored in system history with spin metadata.
- * @param {object} env Cloudflare Worker environment
- * @param {string} uid User id
- * @param {number} [limit=20]
- * @returns {Promise<object>}
- */
-export async function getSpinHistory(env, uid, limit = 20) {
-    if (!uid) throw new Error("Missing uid.");
-
-    const safe = safeLimit(limit, 20, 100);
-    const rows = await getHistoryByUid(env, uid, Math.max(20, safe * 4));
-
-    const items = (Array.isArray(rows) ? rows : [])
-        .filter(spinHistoryFilter)
-        .slice(0, safe)
-        .map(serializeHistoryItem);
+    const pending = await getPendingLexa(env, uid).catch(() => ({ pendingLexa: 0, totalLexa: 0 }));
+    const invitedMembers = Math.max(0, Math.floor(nextState.invitedMembers || 0));
 
     return {
         success: true,
-        items,
-        limit: safe
+        spinId,
+        ticketId,
+        reward: serializeReward(reward, reward.sectorIndex),
+        remainingSpins: nextState.spins,
+        availableSpins: nextState.spins,
+        spins: nextState.spins,
+        invitedMembers,
+        totalInvite: invitedMembers,
+        verifiedInvite: invitedMembers,
+        pendingLexa: pending.pendingLexa ?? 0,
+        totalLexa: pending.totalLexa ?? 0,
+        pending: {
+            pendingLexa: pending.pendingLexa ?? 0,
+            totalLexa: pending.totalLexa ?? 0
+        },
+        task: {
+            referral: clone(nextState.referral)
+        },
+        tasks: {
+            referral: clone(nextState.referral)
+        },
+        referral: clone(nextState.referral),
+        historyType: "system",
+        message: reward.amount > 0
+            ? `You won ${formatLexa(reward.amount)} LEXA.`
+            : "No reward this round."
     };
 }
 
-/**
- * Grant reward into Pending LEXA.
- * Useful when another route wants to grant a spin reward without consuming a spin.
- * @param {object} env Cloudflare Worker environment
- * @param {string} uid User id
- * @param {object} reward Reward object
- * @param {object} [metadata]
- * @returns {Promise<object>}
- */
 export async function grantReward(env, uid, reward = {}, metadata = {}) {
     if (!uid) throw new Error("Missing uid.");
 
     const cfg = await readConfig(env);
+    const normalized = finalizeReward(reward);
+    const spinState = await ensureSpinState(env, uid, cfg);
 
-const normalized =
-    finalizeReward(reward);
+    const nextState = normalizeState({
+        ...spinState,
+        totalRewardsGranted: spinState.totalRewardsGranted + (normalized.amount > 0 ? 1 : 0),
+        updatedAt: now()
+    }, cfg);
 
-const spinState =
-    await ensureSpinState(
-        env,
-        uid,
-        cfg
-    );
+    await saveSpinState(env, uid, nextState);
 
-const nextState = normalizeState({
+    if (normalized.amount > 0) {
+        await addPendingLexa(env, uid, normalized.amount);
+    }
 
-    ...spinState,
-
-    totalRewardsGranted:
-        spinState.totalRewardsGranted +
-        (normalized.amount > 0 ? 1 : 0),
-
-    updatedAt: now()
-
-}, cfg);
-
-await saveSpinState(
-    env,
-    uid,
-    nextState
-);
-if (normalized.amount > 0) {
-    await addPendingLexa(
-        env,
-        uid,
-        normalized.amount
-    );
-}
     await appendSpinHistory(env, uid, {
         title: "Lucky Spin Reward",
         description: normalized.description || `${normalized.label} granted`,
@@ -789,23 +642,20 @@ if (normalized.amount > 0) {
         createdAt: now()
     });
 
-    const pending = await getPendingLexa(env, uid);
+    const pending = await getPendingLexa(env, uid).catch(() => ({ pendingLexa: 0, totalLexa: 0 }));
 
-return {
-    success: true,
-    reward: serializeReward(normalized),
-    pendingLexa: pending.pendingLexa,
-    totalLexa: pending.totalLexa
-};
+    return {
+        success: true,
+        reward: serializeReward(normalized),
+        pendingLexa: pending.pendingLexa ?? 0,
+        totalLexa: pending.totalLexa ?? 0,
+        pending: {
+            pendingLexa: pending.pendingLexa ?? 0,
+            totalLexa: pending.totalLexa ?? 0
+        }
+    };
 }
 
-/**
- * Reduce available spins by one.
- * @param {object} env Cloudflare Worker environment
- * @param {string} uid User id
- * @param {number} [count=1]
- * @returns {Promise<object>}
- */
 export async function consumeSpin(env, uid, count = 1) {
     if (!uid) throw new Error("Missing uid.");
 
@@ -827,15 +677,11 @@ export async function consumeSpin(env, uid, count = 1) {
 
     return {
         success: true,
-        remainingSpins: nextState.spins
+        remainingSpins: nextState.spins,
+        availableSpins: nextState.spins
     };
 }
 
-/**
- * Generate a reward from the configured reward pool.
- * @param {object} env Cloudflare Worker environment
- * @returns {Promise<object>}
- */
 export async function generateReward(env) {
     const cfg = await readConfig(env);
     const { sector, index } = weightedPick(cfg.wheel.sectors);
@@ -849,11 +695,6 @@ export async function generateReward(env) {
     };
 }
 
-/**
- * Optional helper to expose the current config for admin/debug routes.
- * @param {object} env Cloudflare Worker environment
- * @returns {Promise<object>}
- */
 export async function getSpinConfig(env) {
     const config = await readConfig(env);
     return {
@@ -862,12 +703,6 @@ export async function getSpinConfig(env) {
     };
 }
 
-/**
- * Optional helper to overwrite the spin config.
- * @param {object} env Cloudflare Worker environment
- * @param {object} nextConfig Config object
- * @returns {Promise<object>}
- */
 export async function setSpinConfig(env, nextConfig = {}) {
     const config = await writeConfig(env, nextConfig);
     return {
@@ -876,24 +711,20 @@ export async function setSpinConfig(env, nextConfig = {}) {
     };
 }
 
-/**
- * Optional helper to reset a user's spin state.
- * @param {object} env Cloudflare Worker environment
- * @param {string} uid User id
- * @returns {Promise<object>}
- */
 export async function resetSpinState(env, uid) {
     if (!uid) throw new Error("Missing uid.");
 
     const config = await readConfig(env);
     const createdAt = now();
+
     const state = normalizeState({
         uid,
         spins: config.welcomeSpinCount,
         welcomeSpinGranted: config.welcomeSpinCount > 0,
         referral: config.tasks.referral,
-        daily: config.tasks.daily,
-        exchange: config.exchange,
+        invitedMembers: 0,
+        totalInvite: 0,
+        verifiedInvite: 0,
         createdAt,
         updatedAt: createdAt
     }, config);
@@ -906,15 +737,33 @@ export async function resetSpinState(env, uid) {
     };
 }
 
+export async function getSpinHistory(env, uid, limit = 20) {
+    if (!uid) throw new Error("Missing uid.");
+
+    const safe = safeLimit(limit, 20, 100);
+    const rows = await getHistoryByUid(env, uid, Math.max(20, safe * 4));
+
+    const items = (Array.isArray(rows) ? rows : [])
+        .filter(spinHistoryFilter)
+        .slice(0, safe)
+        .map(serializeHistoryItem);
+
+    return {
+        success: true,
+        items,
+        limit: safe
+    };
+}
+
 export default {
     getDashboard,
     startSpin,
-    exchangeSpin,
-    getSpinHistory,
     grantReward,
     consumeSpin,
     generateReward,
     getSpinConfig,
     setSpinConfig,
-    resetSpinState
+    resetSpinState,
+    getSpinHistory
+    
 };
