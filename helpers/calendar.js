@@ -47,15 +47,15 @@ const SOCIAL_TASKS = [
         description: "Become a community member",
         icon: "fa-telegram",
         reward: 0.5,
-        url: "https://t.me/lexa_network"
+        url: "https://t.me/alexa_chain"
     },
     {
-        taskId: "twitter",
-        title: "Follow Twitter",
+        taskId: "youtube",
+        title: "Subs YouTube",
         description: "Stay updated with announcements",
-        icon: "fa-x-twitter",
+        icon: "fa-youtube",
         reward: 0.5,
-        url: "https://x.com/lexaprotocol"
+        url: "https://www.youtube.com/@Lexachain"
     },
     {
         taskId: "facebook",
@@ -72,8 +72,8 @@ const REFERRAL_TASKS = [
     { taskId: "ref5", required: 5, reward: 5.5 },
     { taskId: "ref10", required: 10, reward: 11 },
     { taskId: "ref20", required: 20, reward: 25 },
-    { taskId: "ref50", required: 50, reward: 75 },
-    { taskId: "ref100", required: 100, reward: 200 }
+    { taskId: "ref50", required: 50, reward: 65 },
+    { taskId: "ref100", required: 100, reward: 177 }
 ];
 
 /* ==========================================================
