@@ -9,7 +9,6 @@ import { requireUser } from "../helpers/security.js";
 import {
     getDashboard,
     startSpin,
-    exchangeSpin,
     getSpinHistory
 } from "../helpers/spin.js";
 
@@ -79,22 +78,33 @@ export async function spinRoute(env, request, path = "") {
             return success(env, result);
         }
 
-        if (method === "POST" && pathname === "/api/spin/exchange") {
-            const body = await readJsonBody(request);
-            const result = await exchangeSpin(env, user.uid, body);
-            return success(env, result);
-        }
-
         if (method === "GET" && pathname === "/api/spin/history") {
             const url = new URL(request.url);
-            const limit = Number(url.searchParams.get("limit") || 20);
+            const limit = Math.min(
+    100,
+    Math.max(
+        1,
+        Number(url.searchParams.get("limit") || 20)
+    )
+);
             const result = await getSpinHistory(env, user.uid, limit);
             return success(env, result);
         }
 
         return error(env, "Endpoint Not Found", 404);
     } catch (err) {
-        return error(env, err?.message || "Internal Error", 500);
+        if (
+    err?.message === "Unauthorized" ||
+    err?.status === 401
+){
+    return error(env, "Unauthorized", 401);
+}
+
+return error(
+    env,
+    err?.message || "Internal Error",
+    500
+);
     }
 }
 
