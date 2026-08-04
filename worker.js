@@ -78,7 +78,6 @@ const ROUTES = [
 
 { method: "GET", path: "/api/spin", handler: spinRoute },
 { method: "POST", path: "/api/spin/start", handler: spinRoute },
-{ method: "POST", path: "/api/spin/exchange", handler: spinRoute },
 { method: "GET", path: "/api/spin/history", handler: spinRoute },
 
     { method: "GET", path: "/referral", handler: referralRoute },
