@@ -75,14 +75,15 @@ state.updatedAt = now();
     await saveSpinState(env, uid, state);
 
     await appendSpinHistory(env, uid, {
-        title: "Referral Reward",
-        description: "Verified referral +1 Spin",
-        amount: 0,
-        metadata:{
-            feature:"spin",
-            action:"referral"
-        }
-    });
+    title: "Referral Reward",
+    description: "Verified referral +1 Spin",
+    amount: 1,
+    token: "SPIN",
+    metadata: {
+        feature: "spin",
+        action: "referral"
+    }
+});
 
     return state;
 
