@@ -27,6 +27,9 @@ export function config(env = {}) {
         APP_VERSION: env.APP_VERSION || "1.0.0",
         APP_URL: env.APP_URL || "https://alexa-chain.web.app",
         LOCAL_URL: env.LOCAL_URL || "http://localhost:7077",
+        R2_PUBLIC_URL:
+    env.R2_PUBLIC_URL ||
+    "https://pub-a8f60358800c42019c70674605bf3995.r2.dev",
         ENV: env.ENV || "production"
     };
 }
