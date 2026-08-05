@@ -303,12 +303,22 @@ export async function updateLastLogin(env, uid, extraData = {}) {
         throw new Error("uid is required.");
     }
 
-    return updateUser(env, uid, {
+    const current = normalizeUser(
+        await getUserDoc(env, uid).catch(() => null)
+    );
+
+    const updated = {
+        ...current,
         lastLogin: getNow(),
-        status: extraData.status ?? "active",
-        avatar: extraData.avatar ?? "",
-        provider: extraData.provider ?? "google"
-    });
+        status: extraData.status ?? current.status ?? "active",
+        provider: extraData.provider ?? current.provider ?? "google"
+    };
+
+    if (extraData.avatar !== undefined && String(extraData.avatar).trim()) {
+        updated.avatar = String(extraData.avatar).trim();
+    }
+
+    return updateUser(env, uid, updated);
 }
 
 export async function updateUserStatus(env, uid, status = "active") {
