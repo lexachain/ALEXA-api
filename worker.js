@@ -23,6 +23,7 @@ import {
     getPending,
     migratePending
 } from "./routes/pending.js";
+import { communityRoute } from "./routes/community.js";
 
 /* ==========================================================
    ROUTE MAP
@@ -47,7 +48,7 @@ const ROUTES = [
     { method: "GET", path: "/user/check", handler: userRoute },
     { method: "GET", path: "/user/search/username", handler: userRoute },
     { method: "GET", path: "/user/search/email", handler: userRoute },
-
+    { method: "POST", path: "/community/upload", handler: communityRoute },
     { method: "GET", path: "/wallet", handler: walletRoute },
     { method: "POST", path: "/wallet", handler: walletRoute },
     { method: "POST", path: "/wallet/create", handler: walletRoute },
