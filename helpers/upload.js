@@ -248,6 +248,7 @@ async function uploadImageToR2(env, file, {
 ========================================================== */
 
 export async function uploadAvatarToR2(env, uid, file, options = {}) {
+
     if (!uid) {
         throw new Error("uid is required.");
     }
@@ -256,19 +257,35 @@ export async function uploadAvatarToR2(env, uid, file, options = {}) {
 
     return uploadImageToR2(env, file, {
         folder: "avatar",
-        scope: safeUid,
+
+        // Avatar langsung disimpan:
+        // avatar/{uid}.webp atau avatar/{uid}.jpg
+        scope: "",
+
         fieldName: "avatar",
-        maxBytes: options.maxBytes ?? DEFAULT_AVATAR_MAX_BYTES,
-        allowedMimeTypes: options.allowedMimeTypes ?? ALLOWED_IMAGE_MIME_TYPES,
-        cacheControl: options.cacheControl || DEFAULT_CACHE_CONTROL,
-        cleanupPrefix: `avatar/${safeUid}/`,
-        fileBase: options.fileBase || `${Date.now()}-${randomHex(12)}`,
+
+        maxBytes:
+            options.maxBytes ??
+            DEFAULT_AVATAR_MAX_BYTES,
+
+        allowedMimeTypes:
+            options.allowedMimeTypes ??
+            ALLOWED_IMAGE_MIME_TYPES,
+
+        cacheControl:
+            options.cacheControl ??
+            DEFAULT_CACHE_CONTROL,
+
+        // Tidak perlu cleanup lagi
+        fileBase: safeUid,
+
         customMetadata: {
             purpose: "avatar",
             uid: String(uid),
             ...(options.customMetadata || {})
         }
     });
+
 }
 
 export async function uploadCommunityImageToR2(env, file, options = {}) {
