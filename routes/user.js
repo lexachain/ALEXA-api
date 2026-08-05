@@ -27,6 +27,8 @@ import {
     findUserByFirebaseUid,
     buildInitialUserPayload
 } from "../helpers/user.js";
+import { uploadAvatarToR2 } from "../helpers/upload.js";
+
 import { deleteAccount } from "../helpers/delete.js";
 /* ==========================================================
    ROUTE
@@ -199,31 +201,44 @@ const profile = await getUser(env, uid);
 ========================================================== */
 
 async function userUpdateAvatar(env, request) {
+
     const auth = await requireUser(env, request);
-const uid = auth.uid;
+    const uid = auth.uid;
 
-if (!uid) {
-    return error(env, "Unauthorized user.", 401);
-}
+    if (!uid) {
+        return error(env, "Unauthorized user.", 401);
+    }
 
-const profile = await getUser(env, uid);
+    const profile = await getUser(env, uid);
 
     if (!profile) {
         return error(env, "User not found.", 404);
     }
 
-    const body = await request.json().catch(() => ({}));
-    const avatar = String(body?.avatar || body?.avatarUrl || "").trim();
+    const form = await request.formData();
 
-    if (!avatar) {
-        return error(env, "avatar is required.", 400);
+    const file = form.get("avatar");
+
+    if (!file) {
+        return error(env, "Avatar image is required.", 400);
     }
 
-    const updated = await updateAvatar(env, profile.uid, avatar);
+    const uploaded = await uploadAvatarToR2(
+        env,
+        profile.uid,
+        file
+    );
+
+    const updated = await updateAvatar(
+        env,
+        profile.uid,
+        uploaded.url
+    );
 
     return success(env, {
         user: updated
     });
+
 }
 
 /* ==========================================================
