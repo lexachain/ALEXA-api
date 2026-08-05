@@ -90,21 +90,21 @@ if (inviterUid && inviterUid !== alexaUid) {
             }
         } else {
             await updateUser(env, user.uid, {
-                email: firebaseUser.email || user.email || "",
-                displayName:
-                    firebaseUser.name ||
-                    user.displayName ||
-                    user.username ||
-                    "",
-                username:
-                    user.username ||
-                    firebaseUser.name ||
-                    firebaseUser.email?.split("@")[0] ||
-                    uid.slice(0, 8),
-                avatar: firebaseUser.picture || user.avatar || "",
-                verified: Boolean(firebaseUser.emailVerified),
-                lastLoginAt: Date.now()
-            });
+    email: firebaseUser.email || user.email || "",
+    displayName:
+        firebaseUser.name ||
+        user.displayName ||
+        user.username ||
+        "",
+    username:
+        user.username ||
+        firebaseUser.name ||
+        firebaseUser.email?.split("@")[0] ||
+        uid.slice(0, 8),
+
+    verified: Boolean(firebaseUser.emailVerified),
+    lastLoginAt: Date.now()
+});
         }
 
         const latestUser = await getUser(env, user.uid);

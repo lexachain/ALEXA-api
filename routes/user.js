@@ -144,11 +144,6 @@ async function userSync(env, request) {
     provider: auth?.provider || "google"
 };
 
-const authAvatar = auth?.picture || auth?.photoURL || "";
-if (authAvatar) {
-    extraData.avatar = authAvatar;
-}
-
 profile = await updateLastLogin(env, profile.uid, extraData);
 
     return success(env, {
