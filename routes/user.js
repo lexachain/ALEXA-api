@@ -139,11 +139,17 @@ async function userSync(env, request) {
         return error(env, "User not found.", 404);
     }
 
-    profile = await updateLastLogin(env, profile.uid, {
-        status: "active",
-        avatar: auth?.picture || auth?.photoURL || "",
-        provider: auth?.provider || "google"
-    });
+    const extraData = {
+    status: "active",
+    provider: auth?.provider || "google"
+};
+
+const authAvatar = auth?.picture || auth?.photoURL || "";
+if (authAvatar) {
+    extraData.avatar = authAvatar;
+}
+
+profile = await updateLastLogin(env, profile.uid, extraData);
 
     return success(env, {
         user: profile
